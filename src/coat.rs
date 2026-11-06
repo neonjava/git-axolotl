@@ -21,7 +21,7 @@ pub struct AxolotlCoat {
     pub gill: ShadeRamp,
     /// Feathery gill fronds when no language tones are in use.
     pub gill_tip: ShadeRamp,
-    /// One tone per top language, shown on the spots and gill fronds.
+    /// One tone per language, shown on the spots and gill fronds.
     pub tones: Vec<LanguageTone>,
 }
 
@@ -33,8 +33,12 @@ pub struct LanguageTone {
     pub spot_share: f64,
 }
 
-/// How many languages are listed in the HUD and painted on the axolotl.
+/// How many languages are named in the HUD legend.
 pub const TOP_LANGUAGE_COUNT: usize = 10;
+
+/// How many languages get a color. GIF frames hold 255 colors and each tone uses four,
+/// so this leaves room for the body and text colors.
+pub const MAX_COLORED_LANGUAGES: usize = 40;
 
 pub const NATURAL_SKIN: ShadeRamp = [
     [150, 92, 104, 255],
@@ -191,7 +195,7 @@ fn language_tones(snapshot: &AccountSnapshot) -> Vec<LanguageTone> {
     snapshot
         .languages
         .iter()
-        .take(TOP_LANGUAGE_COUNT)
+        .take(MAX_COLORED_LANGUAGES)
         .filter_map(|lang| {
             parse_hex_color(&lang.hex_color).map(|rgb| LanguageTone {
                 ramp: build_ramp_from_rgb(rgb, 1.0),

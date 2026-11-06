@@ -6,7 +6,9 @@
 
 use std::f64::consts::{PI, TAU};
 
-use crate::coat::{parse_hex_color, AxolotlCoat, ShadeRamp, TOP_LANGUAGE_COUNT};
+use crate::coat::{
+    parse_hex_color, AxolotlCoat, ShadeRamp, MAX_COLORED_LANGUAGES, TOP_LANGUAGE_COUNT,
+};
 use crate::history::AccountSnapshot;
 
 /// Native canvas width in pixels (exported at 2x scale = 640px).
@@ -936,6 +938,25 @@ pub fn language_percent_label(weight: u64, total: u64) -> String {
     }
 }
 
+/// Share bar widths in pixels. Every language gets at least one pixel so none can vanish,
+/// and the pixels that takes come out of the widest segments.
+pub fn language_bar_widths(weights: &[u64], total: u64, bar_width: u32) -> Vec<u32> {
+    let mut widths: Vec<u32> = weights
+        .iter()
+        .map(|&weight| {
+            let exact = weight as f64 / total.max(1) as f64 * f64::from(bar_width);
+            (exact.round() as u32).max(1)
+        })
+        .collect();
+    while widths.iter().sum::<u32>() > bar_width {
+        match widths.iter_mut().max() {
+            Some(widest) if *widest > 1 => *widest -= 1,
+            _ => break,
+        }
+    }
+    widths
+}
+
 /// Paint the HUD: stage, contribution counts, then the language bar and legend.
 fn paint_metrics_hud(
     rgba_pixels: &mut [[u8; 4]],
@@ -977,7 +998,7 @@ fn paint_metrics_hud(
     paint_language_legend(rgba_pixels, w, h, h - 21, coat, snapshot);
 }
 
-/// Paint a stacked share bar at `bar_y`, then the top languages in two rows of five.
+/// Paint a stacked share bar of every language at `bar_y`, then name the top ones in two rows of five.
 fn paint_language_legend(
     rgba_pixels: &mut [[u8; 4]],
     w: u32,
@@ -996,21 +1017,25 @@ fn paint_language_legend(
         return;
     }
     let bar_width = w - BASE_X * 2;
-    for dx in 0..bar_width {
-        let position = (f64::from(dx) + 0.5) / f64::from(bar_width) * total as f64;
-        let mut covered = 0.0;
-        let mut color = OTHER_COLOR;
-        for lang in snapshot.languages.iter().take(TOP_LANGUAGE_COUNT) {
-            covered += lang.weight as f64;
-            if position <= covered {
-                if let Some([r, g, b]) = parse_hex_color(&lang.hex_color) {
-                    color = [r, g, b, 255];
-                }
-                break;
+    let colored = &snapshot.languages[..snapshot.languages.len().min(MAX_COLORED_LANGUAGES)];
+    let weights: Vec<u64> = colored.iter().map(|l| l.weight).collect();
+    let mut x = BASE_X;
+    for (lang, width) in colored
+        .iter()
+        .zip(language_bar_widths(&weights, total, bar_width))
+    {
+        let color =
+            parse_hex_color(&lang.hex_color).map_or(OTHER_COLOR, |[r, g, b]| [r, g, b, 255]);
+        for dx in 0..width {
+            for dy in 0..2 {
+                set_outlined_pixel(rgba_pixels, w, h, x + dx, bar_y + dy, color);
             }
         }
+        x += width;
+    }
+    for dx in x..BASE_X + bar_width {
         for dy in 0..2 {
-            set_outlined_pixel(rgba_pixels, w, h, BASE_X + dx, bar_y + dy, color);
+            set_outlined_pixel(rgba_pixels, w, h, dx, bar_y + dy, OTHER_COLOR);
         }
     }
 

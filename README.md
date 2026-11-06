@@ -1,6 +1,6 @@
 # git-axolotl
 
-A procedural pixel-art axolotl for your GitHub profile `README.md`. It grows from a legless hatchling into an elder with a full gill crown as you contribute, wears the colors of your top 10 languages, and gets a spot pattern unique to your account.
+A procedural pixel-art axolotl for your GitHub profile `README.md`. It grows from a legless hatchling into an elder with a full gill crown as you contribute, wears the colors of every language you use, and gets a spot pattern unique to your account.
 
 <p align="center">
   <img src="docs/stage5-elder/axolotl.gif" width="640" alt="An animated Stage 5 elder axolotl" />
@@ -98,7 +98,7 @@ Without a token or `gh`, languages are counted per repository instead of by byte
 
 Your top 10 languages are ranked by bytes of code across your public, non-fork repositories, like the language bar on a GitHub repository. Below the axolotl, the HUD shows a colored share bar and a legend with each language's percentage.
 
-All 10 also appear on the axolotl:
+The legend names your top 10, while the colors cover every language (up to 40, the most a GIF palette can hold). The bar gives each language at least one pixel, and all of them appear on the axolotl:
 
 - **Language 1:** skin, belly tint and fin.
 - **Language 2:** gill stalks.

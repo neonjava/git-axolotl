@@ -36,7 +36,7 @@
         <div class="flex items-center gap-2.5">
           <img src="favicon.png" alt="git-axolotl logo" class="w-9 h-9 rounded-xl shadow-md border border-[#30363d] bg-[#161b22] object-contain p-0.5" />
           <h1 class="text-2xl font-bold tracking-tight text-white">git-axolotl</h1>
-          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#1f6feb]/20 text-[#58a6ff] border border-[#1f6feb]/40">v2.1</span>
+          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#1f6feb]/20 text-[#58a6ff] border border-[#1f6feb]/40">v2.2</span>
         </div>
         <p class="text-sm text-[#8b949e] mt-1">
           Enter your GitHub username to preview your procedural pixel-art Axolotl, compare with a friend, or copy the setup snippets.
@@ -626,17 +626,25 @@
       const langs = coat.languages || [], total = coat.totalWeight || 0;
       if (!total) return;
       const barWidth = w - baseX * 2;
-      for (let dx = 0; dx < barWidth; dx++) {
-        const position = (dx + 0.5) / barWidth * total;
-        let covered = 0, color = [72, 78, 88];
-        for (const lang of langs) {
-          covered += lang.weight;
-          if (position <= covered) { color = lang.color; break; }
-        }
-        setOutlinedNativePixel(buf, w, h, baseX + dx, barY, color);
-        setOutlinedNativePixel(buf, w, h, baseX + dx, barY + 1, color);
+      const widths = langs.map(l => Math.max(Math.round(l.weight / total * barWidth), 1));
+      let excess = widths.reduce((sum, width) => sum + width, 0) - barWidth;
+      while (excess > 0 && Math.max(...widths) > 1) {
+        widths[widths.indexOf(Math.max(...widths))] -= 1;
+        excess -= 1;
       }
+      let barX = baseX;
       langs.forEach((lang, index) => {
+        for (let dx = 0; dx < widths[index]; dx++) {
+          setOutlinedNativePixel(buf, w, h, barX + dx, barY, lang.color);
+          setOutlinedNativePixel(buf, w, h, barX + dx, barY + 1, lang.color);
+        }
+        barX += widths[index];
+      });
+      for (; barX < baseX + barWidth; barX++) {
+        setOutlinedNativePixel(buf, w, h, barX, barY, [72, 78, 88]);
+        setOutlinedNativePixel(buf, w, h, barX, barY + 1, [72, 78, 88]);
+      }
+      langs.slice(0, 10).forEach((lang, index) => {
         const x = baseX + (index % 5) * 61, y = barY + 5 + Math.floor(index / 5) * 8;
         for (let dy = 0; dy < 3; dy++) {
           for (let dx = 0; dx < 3; dx++) setOutlinedNativePixel(buf, w, h, x + dx, y + 1 + dy, lang.color);
@@ -796,7 +804,7 @@ jobs:
         }
         const ranked = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
         const totalWeight = ranked.reduce((sum, name) => sum + counts[name], 0);
-        const langList = ranked.slice(0, 10).map(name => ({ name, weight: counts[name], color: LANG_COLORS[name] || hashColor(name) }));
+        const langList = ranked.slice(0, 40).map(name => ({ name, weight: counts[name], color: LANG_COLORS[name] || hashColor(name) }));
         const c1 = langList[0] ? langList[0].color : undefined;
         const c2 = langList[1] ? langList[1].color : c1;
         const c3 = langList[2] ? langList[2].color : c2;

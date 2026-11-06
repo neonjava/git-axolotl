@@ -6,9 +6,9 @@ use git_axolotl::history::{
 };
 use git_axolotl::output::{encode_gif, encode_png, encode_share_card_png};
 use git_axolotl::render::{
-    language_percent_label, render_share_card_frame, render_still_frame, render_swim_frame,
-    render_swim_loop, AxolotlBiology, CameraView, FRAME_HEIGHT_PIXELS, FRAME_WIDTH_PIXELS,
-    LOOP_FRAME_COUNT,
+    language_bar_widths, language_percent_label, render_share_card_frame, render_still_frame,
+    render_swim_frame, render_swim_loop, AxolotlBiology, CameraView, FRAME_HEIGHT_PIXELS,
+    FRAME_WIDTH_PIXELS, LOOP_FRAME_COUNT,
 };
 
 fn fnv1a_64(bytes: &[u8]) -> u64 {
@@ -221,10 +221,10 @@ fn ten_language_snapshot() -> AccountSnapshot {
 }
 
 #[test]
-fn every_top_language_gets_a_tone_and_appears_on_the_axolotl() {
+fn every_language_gets_a_tone_and_appears_on_the_axolotl() {
     let snap = ten_language_snapshot();
     let coat = AxolotlCoat::from_snapshot(&snap, false);
-    assert_eq!(coat.tones.len(), 10);
+    assert_eq!(coat.tones.len(), 12);
 
     let frame = render_still_frame(&snap, &coat, CameraView::Side);
     let hud_top = (FRAME_HEIGHT_PIXELS - 38) as usize * FRAME_WIDTH_PIXELS as usize;
@@ -235,7 +235,38 @@ fn every_top_language_gets_a_tone_and_appears_on_the_axolotl() {
         .skip(1)
         .filter(|tone| tone.ramp.iter().any(|shade| creature.contains(shade)))
         .count();
-    assert_eq!(shown, 9, "every language after the first should be visible");
+    assert_eq!(
+        shown, 11,
+        "every language after the first should be visible"
+    );
+}
+
+#[test]
+fn share_bar_keeps_tiny_languages_and_fits() {
+    let widths = language_bar_widths(&[1_000_000, 500, 1], 1_000_501, 304);
+    assert_eq!(widths.len(), 3);
+    assert!(widths.iter().all(|&w| w >= 1));
+    assert_eq!(widths.iter().sum::<u32>(), 304);
+
+    let crowded = vec![1; 400];
+    let widths = language_bar_widths(&crowded, 400, 304);
+    assert!(widths.iter().all(|&w| w == 1));
+}
+
+#[test]
+fn huge_language_lists_stay_within_the_gif_palette() {
+    let mut snap = ten_language_snapshot();
+    snap.languages = (0..80_u64)
+        .map(|i| LanguageShare {
+            name: format!("Lang{i}"),
+            hex_color: format!("#{:02x}{:02x}{:02x}", i * 3, 255 - i * 3, (i * 7) % 256),
+            weight: 1000 - i,
+        })
+        .collect();
+    let coat = AxolotlCoat::from_snapshot(&snap, false);
+    let frame = render_still_frame(&snap, &coat, CameraView::Side);
+    let colors: std::collections::BTreeSet<_> = frame.rgba_pixels.iter().collect();
+    assert!(colors.len() <= 255, "got {} colors", colors.len());
 }
 
 #[test]

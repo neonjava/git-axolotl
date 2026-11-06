@@ -36,7 +36,7 @@
         <div class="flex items-center gap-2.5">
           <img src="favicon.png" alt="git-axolotl logo" class="w-9 h-9 rounded-xl shadow-md border border-[#30363d] bg-[#161b22] object-contain p-0.5" />
           <h1 class="text-2xl font-bold tracking-tight text-white">git-axolotl</h1>
-          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#1f6feb]/20 text-[#58a6ff] border border-[#1f6feb]/40">v2.0</span>
+          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#1f6feb]/20 text-[#58a6ff] border border-[#1f6feb]/40">v2.1</span>
         </div>
         <p class="text-sm text-[#8b949e] mt-1">
           Enter your GitHub username to preview your procedural pixel-art Axolotl, compare with a friend, or copy the setup snippets.
@@ -71,7 +71,7 @@
       </div>
     </section>
 
-    <!-- High-Resolution 1280x560 Live Canvas Preview -->
+    <!-- High-Resolution 1280x624 Live Canvas Preview -->
     <section id="canvasGrid" class="grid grid-cols-1 gap-4">
       <div class="card p-5 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -79,14 +79,14 @@
             <span class="inline-block w-2 h-2 rounded-full bg-[#3fb950]"></span>
             <span id="primaryCaption" class="font-semibold text-white text-sm">Demo Axolotl Preview</span>
           </div>
-          <span class="text-[#8b949e] font-mono">1280x560 High-Resolution 4x Pixel Art • Resets Jan 1st</span>
+          <span class="text-[#8b949e] font-mono">1280x624 High-Resolution 4x Pixel Art • Resets Jan 1st</span>
         </div>
         <div class="relative rounded-xl bg-[#0d1117] border border-[#30363d] p-4 flex justify-center min-h-[220px] items-center">
           <div id="primaryLoader" class="absolute inset-0 rounded-xl bg-[#0d1117]/95 flex flex-col items-center justify-center gap-3 z-10 transition-opacity duration-200 hidden">
             <div class="w-8 h-8 rounded-full border-2 border-[#30363d] border-t-[#58a6ff] animate-spin"></div>
             <span id="primaryLoaderText" class="text-xs font-medium text-[#8b949e]">Loading axolotl...</span>
           </div>
-          <canvas id="mainCanvas" width="1280" height="560" class="w-full max-w-[820px] h-auto"></canvas>
+          <canvas id="mainCanvas" width="1280" height="624" class="w-full max-w-[820px] h-auto"></canvas>
         </div>
       </div>
 
@@ -103,7 +103,7 @@
             <div class="w-8 h-8 rounded-full border-2 border-[#30363d] border-t-[#58a6ff] animate-spin"></div>
             <span id="friendLoaderText" class="text-xs font-medium text-[#8b949e]">Loading friend's axolotl...</span>
           </div>
-          <canvas id="friendCanvas" width="1280" height="560" class="w-full max-w-[820px] h-auto"></canvas>
+          <canvas id="friendCanvas" width="1280" height="624" class="w-full max-w-[820px] h-auto"></canvas>
         </div>
       </div>
     </section>
@@ -137,8 +137,8 @@
 
   <script>
     const NATIVE_W = 320;
-    const NATIVE_H = 140;
-    const SCALE = 4; // 320x140 * 4 = 1280x560 razor-sharp nearest-neighbor canvas
+    const NATIVE_H = 156;
+    const SCALE = 4; // 320x156 * 4 = 1280x624 razor-sharp nearest-neighbor canvas
 
     const BAYER_4X4 = [
       [0, 8, 2, 10],
@@ -189,6 +189,8 @@
       '-': [0b000, 0b000, 0b111, 0b000, 0b000],
       '.': [0b000, 0b000, 0b000, 0b000, 0b010],
       '+': [0b000, 0b010, 0b111, 0b010, 0b000],
+      '%': [0b101, 0b001, 0b010, 0b100, 0b101],
+      '<': [0b001, 0b010, 0b100, 0b010, 0b001],
       '#': [0b101, 0b111, 0b101, 0b111, 0b101],
       ' ': [0b000, 0b000, 0b000, 0b000, 0b000]
     };
@@ -247,20 +249,42 @@
       gillTip: [[196, 60, 96], [240, 104, 124], [255, 150, 156], [255, 200, 196]]
     };
 
-    function buildCoatFromColors(c1 = [49, 120, 198], c2 = [222, 165, 132], c3 = [53, 114, 165], langs = null) {
+    const DEMO_LANGUAGES = [
+      ["TypeScript", [49, 120, 198], 4200], ["Rust", [222, 165, 132], 3100], ["Python", [53, 114, 165], 1900],
+      ["Java", [176, 114, 25], 1400], ["JavaScript", [241, 224, 90], 900], ["Go", [0, 173, 216], 700],
+      ["Kotlin", [169, 123, 255], 500], ["HTML", [227, 76, 38], 350], ["CSS", [86, 61, 124], 200], ["Shell", [137, 224, 81], 120]
+    ].map(([name, color, weight]) => ({ name, color, weight }));
+
+    function buildCoatFromColors(c1 = [49, 120, 198], c2 = [222, 165, 132], c3 = [53, 114, 165], langs = DEMO_LANGUAGES, totalWeight = null) {
+      const languages = langs || [];
       return {
+        languages,
+        totalWeight: totalWeight ?? languages.reduce((sum, l) => sum + l.weight, 0),
+        tones: languages.map(l => ({ ramp: makeRamp(l.color, 1.0), share: Math.max(Math.sqrt(l.weight), 1) })),
         skin: blendRamps(NATURAL.skin, makeRamp(c1, 1.0), 0.62),
         markings: blendRamps(NATURAL.markings, makeRamp(c1, 0.55), 0.55),
         belly: blendRamps(NATURAL.belly, makeRamp(c1, 1.1), 0.22),
         fin: blendRamps(NATURAL.fin, makeRamp(c1, 1.05), 0.45),
         gill: blendRamps(NATURAL.gill, makeRamp(c2, 0.95), 0.70),
-        gillTip: blendRamps(NATURAL.gillTip, makeRamp(c3, 1.1), 0.70),
-        languages: langs
+        gillTip: blendRamps(NATURAL.gillTip, makeRamp(c3, 1.1), 0.70)
       };
     }
 
+    function spotRamp(coat, roll) {
+      let remaining = roll * coat.tones.reduce((sum, t) => sum + t.share, 0);
+      for (let i = 0; i < coat.tones.length; i++) {
+        remaining -= coat.tones[i].share;
+        if (remaining <= 0) return i === 0 ? coat.markings : coat.tones[i].ramp;
+      }
+      return coat.markings;
+    }
+
+    function frondRamp(coat, index) {
+      return coat.tones.length ? coat.tones[index % coat.tones.length].ramp : coat.gillTip;
+    }
+
     const LIGHT = [-0.30, -0.62, 0.72];
-    const HUD_RESERVED_BOTTOM = 22;
+    const HUD_RESERVED_BOTTOM = 38;
 
     function lerp(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
     function smoothStep(t) { const c = Math.max(0, Math.min(1, t)); return c * c * (3 - 2 * c); }
@@ -386,7 +410,7 @@
         const reach = length * 0.30 * (1 - 0.45 * t);
         for (const side of [-1, 1]) {
           const spread = headings[seg] + side * 0.95 + Math.sin(swayPhase - t * 3) * 0.12;
-          parts.push({ z, kind: "frond", pts: [
+          parts.push({ z, kind: "frond", tone: parts.length, pts: [
             round(base.x, base.y, 0.85, 0),
             round(base.x + back * Math.cos(spread) * reach, base.y + lateral * Math.sin(spread) * reach, 0.75, 1)
           ] });
@@ -493,7 +517,7 @@
           const hit = sampleChain(part.pts, px + 0.5, py + 0.5);
           if (!hit) continue;
           const ramp = part.kind === "leg" ? coat.skin
-            : part.kind === "frond" && hit.u > 0.45 ? coat.gillTip : coat.gill;
+            : part.kind === "frond" && hit.u > 0.30 ? frondRamp(coat, part.tone) : coat.gill;
           const r = Math.max(hit.coreR, 0.5);
           const bright = 0.34 + 0.64 * litBrightness(hit.dx / r, hit.dy / r) - (farSide ? 0.26 : 0);
           putPixel(buf, px, py, chooseShade(ramp, bright, px, py));
@@ -516,7 +540,7 @@
           let ramp = coat.skin;
           if (v > (hit.u < 0.22 ? 0.66 : 0.40)) ramp = coat.belly;
           if (hit.u > 0.03 && v < 0.42 && smoothNoise(hit.u * bio.bodyLen / 4.2, v * bio.headR / 3.4, seed) > bio.spotThreshold) {
-            ramp = coat.markings;
+            ramp = spotRamp(coat, hash2D(Math.floor(hit.u * bio.bodyLen / 9), Math.floor(v * bio.headR / 6), seed ^ 0x5151));
           }
           let bright = 0.36 + 0.64 * litBrightness(hit.dx / hit.coreR, hit.dy / hit.coreR);
           const onFlank = hit.u > 0.30 && hit.u < 0.60 && v > -0.35 && v < 0.55;
@@ -592,28 +616,50 @@
       }
     }
 
+    function languagePercentLabel(weight, total) {
+      const percent = Math.round(weight / Math.max(total, 1) * 100);
+      return percent === 0 ? "<1%" : `${percent}%`;
+    }
+
+    function paintLanguageLegend(buf, barY, coat) {
+      const w = NATIVE_W, h = NATIVE_H, baseX = 8;
+      const langs = coat.languages || [], total = coat.totalWeight || 0;
+      if (!total) return;
+      const barWidth = w - baseX * 2;
+      for (let dx = 0; dx < barWidth; dx++) {
+        const position = (dx + 0.5) / barWidth * total;
+        let covered = 0, color = [72, 78, 88];
+        for (const lang of langs) {
+          covered += lang.weight;
+          if (position <= covered) { color = lang.color; break; }
+        }
+        setOutlinedNativePixel(buf, w, h, baseX + dx, barY, color);
+        setOutlinedNativePixel(buf, w, h, baseX + dx, barY + 1, color);
+      }
+      langs.forEach((lang, index) => {
+        const x = baseX + (index % 5) * 61, y = barY + 5 + Math.floor(index / 5) * 8;
+        for (let dy = 0; dy < 3; dy++) {
+          for (let dx = 0; dx < 3; dx++) setOutlinedNativePixel(buf, w, h, x + dx, y + 1 + dy, lang.color);
+        }
+        const percent = languagePercentLabel(lang.weight, total);
+        const name = lang.name.slice(0, Math.max(13 - percent.length - 1, 0));
+        drawNativePixelString(buf, w, h, x + 5, y, `${name} ${percent}`, coat.belly[2]);
+      });
+    }
+
     function paintHud(buf, bio, coat, history) {
       const w = NATIVE_W, h = NATIVE_H, baseX = 8;
       for (let dy = 0; dy < 5; dy++) {
-        for (let dx = 0; dx < 3; dx++) setOutlinedNativePixel(buf, w, h, baseX + dx, h - 23 + dy, coat.gill[3]);
+        for (let dx = 0; dx < 3; dx++) setOutlinedNativePixel(buf, w, h, baseX + dx, h - 37 + dy, coat.gill[3]);
       }
-      drawNativePixelString(buf, w, h, baseX + 6, h - 23, getHudStageLabel(bio.commits), coat.belly[3]);
+      drawNativePixelString(buf, w, h, baseX + 6, h - 37, getHudStageLabel(bio.commits), coat.belly[3]);
       const line2 = `CONTRIBUTIONS: ${bio.commits}`;
-      drawNativePixelString(buf, w, h, baseX, h - 15, line2, coat.skin[3]);
+      drawNativePixelString(buf, w, h, baseX, h - 29, line2, coat.skin[3]);
       if (history) {
         const text = `${history.lifetime > bio.commits ? `ALL TIME: ${history.lifetime} ` : ""}SINCE ${history.since}`;
-        drawNativePixelString(buf, w, h, baseX + line2.length * 4 + 6, h - 15, text, coat.belly[2]);
+        drawNativePixelString(buf, w, h, baseX + line2.length * 4 + 6, h - 29, text, coat.belly[2]);
       }
-      let langX = baseX;
-      for (const lang of (coat.languages || []).slice(0, 3)) {
-        for (let dy = 0; dy < 3; dy++) {
-          for (let dx = 0; dx < 3; dx++) setOutlinedNativePixel(buf, w, h, langX + dx, h - 6 + dy, lang.color);
-        }
-        langX += 5;
-        const shortName = lang.name.slice(0, 8);
-        drawNativePixelString(buf, w, h, langX, h - 7, shortName, coat.belly[2]);
-        langX += shortName.length * 4 + 6;
-      }
+      paintLanguageLegend(buf, h - 21, coat);
     }
 
     function renderAxolotlBuffer(commits, coat, turn, seed, history) {
@@ -748,12 +794,13 @@ jobs:
         for (const r of repos) {
           if (r.language && !r.fork) counts[r.language] = (counts[r.language] || 0) + 1;
         }
-        const topLanguages = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
-        const langList = topLanguages.map(name => ({ name, color: LANG_COLORS[name] || hashColor(name) }));
+        const ranked = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+        const totalWeight = ranked.reduce((sum, name) => sum + counts[name], 0);
+        const langList = ranked.slice(0, 10).map(name => ({ name, weight: counts[name], color: LANG_COLORS[name] || hashColor(name) }));
         const c1 = langList[0] ? langList[0].color : undefined;
         const c2 = langList[1] ? langList[1].color : c1;
         const c3 = langList[2] ? langList[2].color : c2;
-        const coat = buildCoatFromColors(c1, c2, c3, langList);
+        const coat = buildCoatFromColors(c1, c2, c3, langList, totalWeight);
 
         if (isFriend) {
           friendUser = login;
@@ -848,20 +895,9 @@ jobs:
       const tw = sctx.measureText(rightText).width;
       sctx.fillText(rightText, 1240 - tw, 60);
 
-      // Draw 1280x560 4x pixel-art canvas without smoothing
+      // Draw the 4x pixel-art canvas without smoothing, scaled to fit below the header
       sctx.imageSmoothingEnabled = false;
-      sctx.drawImage(document.getElementById("mainCanvas"), 0, 72, 1280, 560);
-
-      // Bottom-right stage progression indicator
-      const stages = ["1. Hatchling", "2. Larva", "3. Juvenile", "4. Adult", "5. Elder"];
-      const activeIdx = stageIndex(primaryCommits);
-      let sx = 640;
-      sctx.font = "bold 17px monospace";
-      for (let i = 0; i < stages.length; i++) {
-        sctx.fillStyle = i === activeIdx ? "#f0f6fc" : i < activeIdx ? "#58a6ff" : "#484f58";
-        sctx.fillText(stages[i], sx, 598);
-        sx += sctx.measureText(stages[i]).width + 24;
-      }
+      sctx.drawImage(document.getElementById("mainCanvas"), 96, 90, 1087, 530);
 
       const a = document.createElement("a");
       a.download = `${primaryUser || "demo"}-axolotl-share-card.png`;

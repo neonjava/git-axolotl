@@ -1,6 +1,6 @@
 # git-axolotl
 
-A procedural pixel-art axolotl for your GitHub profile `README.md`. It grows from a legless hatchling into an elder with a full gill crown as you contribute, takes its colors from your top languages, and gets a spot pattern unique to your account.
+A procedural pixel-art axolotl for your GitHub profile `README.md`. It grows from a legless hatchling into an elder with a full gill crown as you contribute, wears the colors of your top 10 languages, and gets a spot pattern unique to your account.
 
 <p align="center">
   <img src="docs/stage5-elder/axolotl.gif" width="640" alt="An animated Stage 5 elder axolotl" />
@@ -84,6 +84,8 @@ GitHub only reveals private contributions as anonymous counts. Repository names 
 
 Languages always come from public repositories, so a personal token cannot reveal private repository languages in your public GIF.
 
+Without a token or `gh`, languages are counted per repository instead of by bytes, as are the ones in the web preview.
+
 ## Camera views
 
 | `view` | Preview | Description |
@@ -94,9 +96,15 @@ Languages always come from public repositories, so a personal token cannot revea
 
 ## Colors
 
-- **Language 1:** skin, spots, belly tint and fin.
+Your top 10 languages are ranked by bytes of code across your public, non-fork repositories, like the language bar on a GitHub repository. Below the axolotl, the HUD shows a colored share bar and a legend with each language's percentage.
+
+All 10 also appear on the axolotl:
+
+- **Language 1:** skin, belly tint and fin.
 - **Language 2:** gill stalks.
-- **Language 3:** feathery gill fronds.
+- **Every language:** the feathery gill fronds cycle through them, and the spots use them in proportion to their share, softened so small languages stay visible.
+
+Younger stages have fewer fronds and spots, so more of your languages appear as the axolotl grows.
 
 Set `natural: "true"` (or `--natural` on the CLI) for the classic pink axolotl:
 

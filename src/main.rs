@@ -1,9 +1,9 @@
-//! CLI entrypoint for `git-tulkun`.
+//! CLI entrypoint for `git-axolotl`.
 //!
 //! Commands:
-//! - `git-tulkun collect <login> [--window annual|rolling] [--output snapshot.json]`
-//! - `git-tulkun render <snapshot.json> [--output-dir tulkun] [--view side|dive|top] [--canon]`
-//! - `git-tulkun demo [--commits 2800] [--output-dir tulkun] [--view side|dive|top] [--canon]`
+//! - `git-axolotl collect <login> [--window annual|rolling] [--output snapshot.json]`
+//! - `git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--canon]`
+//! - `git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--canon]`
 
 use std::env;
 use std::fs;
@@ -11,13 +11,13 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use chrono::NaiveDate;
-use git_tulkun::coat::TulkunCoat;
-use git_tulkun::collect::collect_account_snapshot_with_window;
-use git_tulkun::history::{AccountSnapshot, ContributionWindow, LanguageShare};
-use git_tulkun::output::{encode_gif, encode_png, encode_preview_html, encode_share_card_png};
-use git_tulkun::render::{
-    render_share_card_frame, render_still_frame, render_swim_frame, CameraView, TulkunBiology,
-    TulkunFrame, LOOP_FRAME_COUNT,
+use git_axolotl::coat::AxolotlCoat;
+use git_axolotl::collect::collect_account_snapshot_with_window;
+use git_axolotl::history::{AccountSnapshot, ContributionWindow, LanguageShare};
+use git_axolotl::output::{encode_gif, encode_png, encode_preview_html, encode_share_card_png};
+use git_axolotl::render::{
+    render_share_card_frame, render_still_frame, render_swim_frame, CameraView, AxolotlBiology,
+    AxolotlFrame, LOOP_FRAME_COUNT,
 };
 
 fn main() -> ExitCode {
@@ -25,7 +25,7 @@ fn main() -> ExitCode {
     match run_cli(&args) {
         Ok(()) => ExitCode::SUCCESS,
         Err(err) => {
-            eprintln!("git-tulkun: {err}");
+            eprintln!("git-axolotl: {err}");
             ExitCode::FAILURE
         }
     }
@@ -74,7 +74,7 @@ fn run_cli(args: &[String]) -> Result<(), String> {
             let snapshot_file = args
                 .get(1)
                 .ok_or_else(|| "missing <snapshot.json> for `render`".to_owned())?;
-            let mut output_dir = PathBuf::from("tulkun");
+            let mut output_dir = PathBuf::from("axolotl");
             let mut view = CameraView::Side;
             let mut canon_only = false;
 
@@ -107,7 +107,7 @@ fn run_cli(args: &[String]) -> Result<(), String> {
         }
         "demo" => {
             let mut commits = 2800_u64;
-            let mut output_dir = PathBuf::from("tulkun");
+            let mut output_dir = PathBuf::from("axolotl");
             let mut view = CameraView::Side;
             let mut canon_only = false;
 
@@ -196,8 +196,8 @@ fn render_to_directory(
     view: CameraView,
     canon_only: bool,
 ) -> Result<(), String> {
-    let coat = TulkunCoat::from_snapshot(snapshot, canon_only);
-    let swim_frames: Vec<TulkunFrame> = (0..LOOP_FRAME_COUNT)
+    let coat = AxolotlCoat::from_snapshot(snapshot, canon_only);
+    let swim_frames: Vec<AxolotlFrame> = (0..LOOP_FRAME_COUNT)
         .map(|f| render_swim_frame(snapshot, &coat, view, f))
         .collect();
 
@@ -205,7 +205,7 @@ fn render_to_directory(
     let png_bytes = encode_png(&render_still_frame(snapshot, &coat, view))?;
     let share_card_bytes = encode_share_card_png(&render_share_card_frame(snapshot, &coat, view))?;
 
-    let bio = TulkunBiology::from_commits(
+    let bio = AxolotlBiology::from_commits(
         snapshot
             .total_contributions
             .max(snapshot.monthly_contributions),
@@ -219,8 +219,8 @@ fn render_to_directory(
     let preview_html = encode_preview_html(&caption);
 
     fs::create_dir_all(output_dir).map_err(|e| format!("{}: {e}", output_dir.display()))?;
-    let gif_path = output_dir.join("tulkun.gif");
-    let png_path = output_dir.join("tulkun.png");
+    let gif_path = output_dir.join("axolotl.gif");
+    let png_path = output_dir.join("axolotl.png");
     let share_path = output_dir.join("share-card.png");
     let html_path = output_dir.join("preview.html");
 
@@ -243,8 +243,8 @@ fn render_to_directory(
 
 fn usage_text() -> String {
     "Usage:\n  \
-     git-tulkun collect <login> [--window annual|rolling] [--output snapshot.json]\n  \
-     git-tulkun render <snapshot.json> [--output-dir tulkun] [--view side|dive|top] [--canon]\n  \
-     git-tulkun demo [--commits 2800] [--output-dir tulkun] [--view side|dive|top] [--canon]"
+     git-axolotl collect <login> [--window annual|rolling] [--output snapshot.json]\n  \
+     git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--canon]\n  \
+     git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--canon]"
         .to_owned()
 }

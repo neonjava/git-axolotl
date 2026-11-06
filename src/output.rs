@@ -1,11 +1,11 @@
-//! Encodes rendered `TulkunFrame`s into crisp 2x-scaled looping `.gif`, static `.png`,
+//! Encodes rendered `AxolotlFrame`s into crisp 2x-scaled looping `.gif`, static `.png`,
 //! vector `.svg`, and `preview.html` (identical to `git-koi`'s output pipeline).
 
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 use crate::render::{
-    TulkunFrame, FRAMES_PER_SECOND, FRAME_HEIGHT_PIXELS, FRAME_WIDTH_PIXELS,
+    AxolotlFrame, FRAMES_PER_SECOND, FRAME_HEIGHT_PIXELS, FRAME_WIDTH_PIXELS,
     SHARE_CARD_HEIGHT_PIXELS, SHARE_CARD_WIDTH_PIXELS,
 };
 
@@ -23,7 +23,7 @@ const GIF_COLOR_LIMIT: usize = 255;
 const GIF_TRANSPARENT_INDEX: u8 = 0;
 
 /// Encode a static PNG by repeating each native pixel `EXPORT_SCALE` times in X and Y.
-pub fn encode_png(frame: &TulkunFrame) -> Result<Vec<u8>, String> {
+pub fn encode_png(frame: &AxolotlFrame) -> Result<Vec<u8>, String> {
     encode_scaled_rgba_png(
         &frame.rgba_pixels,
         FRAME_WIDTH_PIXELS,
@@ -69,7 +69,7 @@ fn encode_scaled_rgba_png(
 }
 
 /// Encode a seamless animated GIF at `EXPORT_WIDTH x EXPORT_HEIGHT` repeating forever at `FRAMES_PER_SECOND`.
-pub fn encode_gif(frames: &[TulkunFrame]) -> Result<Vec<u8>, String> {
+pub fn encode_gif(frames: &[AxolotlFrame]) -> Result<Vec<u8>, String> {
     if frames.is_empty() {
         return Err("GIF requires at least one frame".to_owned());
     }
@@ -174,7 +174,7 @@ fn elapsed_hundredths(frame_index: usize) -> u16 {
     ((frame_index * 200 + fps) / (2 * fps)) as u16
 }
 
-/// Build an HTML preview page showing `tulkun.gif` and `tulkun.png` on GitHub Light and Dark backgrounds.
+/// Build an HTML preview page showing `axolotl.gif` and `axolotl.png` on GitHub Light and Dark backgrounds.
 pub fn encode_preview_html(caption: &str) -> String {
     let escaped = caption
         .replace('&', "&amp;")
@@ -186,7 +186,7 @@ pub fn encode_preview_html(caption: &str) -> String {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>git-tulkun preview</title>
+<title>git-axolotl preview</title>
 <style>
   body {{ margin: 0; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }}
   h1, h2 {{ margin: 0; font-size: 14px; font-weight: 600; }}
@@ -203,15 +203,15 @@ pub fn encode_preview_html(caption: &str) -> String {
 <section class="dark">
 <h2>GitHub Dark Mode</h2>
 <div class="images">
-<figure><img src="tulkun.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Tulkun swimming"><figcaption>tulkun.gif (Animated 15 FPS)</figcaption></figure>
-<figure><img src="tulkun.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Tulkun still"><figcaption>tulkun.png (Static Still)</figcaption></figure>
+<figure><img src="axolotl.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl swimming"><figcaption>axolotl.gif (Animated 15 FPS)</figcaption></figure>
+<figure><img src="axolotl.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl still"><figcaption>axolotl.png (Static Still)</figcaption></figure>
 </div>
 </section>
 <section class="light">
 <h2>GitHub Light Mode</h2>
 <div class="images">
-<figure><img src="tulkun.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Tulkun swimming"><figcaption>tulkun.gif (Animated 15 FPS)</figcaption></figure>
-<figure><img src="tulkun.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Tulkun still"><figcaption>tulkun.png (Static Still)</figcaption></figure>
+<figure><img src="axolotl.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl swimming"><figcaption>axolotl.gif (Animated 15 FPS)</figcaption></figure>
+<figure><img src="axolotl.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl still"><figcaption>axolotl.png (Static Still)</figcaption></figure>
 </div>
 </section>
 </body>

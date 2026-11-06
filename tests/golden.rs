@@ -1,11 +1,11 @@
 use chrono::NaiveDate;
-use git_tulkun::coat::{parse_hex_color, TulkunCoat};
-use git_tulkun::history::{
+use git_axolotl::coat::{parse_hex_color, AxolotlCoat};
+use git_axolotl::history::{
     summarize_calendar_window, AccountSnapshot, ContributionDay, ContributionWindow, LanguageShare,
 };
-use git_tulkun::output::{encode_gif, encode_png, encode_share_card_png};
-use git_tulkun::render::{
-    render_share_card_frame, render_still_frame, render_swim_frame, CameraView, TulkunBiology,
+use git_axolotl::output::{encode_gif, encode_png, encode_share_card_png};
+use git_axolotl::render::{
+    render_share_card_frame, render_still_frame, render_swim_frame, CameraView, AxolotlBiology,
 };
 
 fn fnv1a_64(bytes: &[u8]) -> u64 {
@@ -43,23 +43,23 @@ fn demo_snapshot(commits: u64) -> AccountSnapshot {
 
 #[test]
 fn stage_boundaries_cover_zero_to_bull_log_scale() {
-    let s0 = TulkunBiology::from_commits(0);
-    assert_eq!(s0.stage_name(), "Baby Tulkun Calf");
+    let s0 = AxolotlBiology::from_commits(0);
+    assert_eq!(s0.stage_name(), "Baby Axolotl Calf");
     assert_eq!(s0.hud_stage_label(), "STAGE 1: BABY CALF");
 
-    let s1 = TulkunBiology::from_commits(149);
+    let s1 = AxolotlBiology::from_commits(149);
     assert_eq!(s1.hud_stage_label(), "STAGE 1: BABY CALF");
 
-    let s2 = TulkunBiology::from_commits(150);
+    let s2 = AxolotlBiology::from_commits(150);
     assert_eq!(s2.hud_stage_label(), "STAGE 2: YEARLING CALF");
 
-    let s3 = TulkunBiology::from_commits(500);
+    let s3 = AxolotlBiology::from_commits(500);
     assert_eq!(s3.hud_stage_label(), "STAGE 3: ADOLESCENT");
 
-    let s4 = TulkunBiology::from_commits(1200);
-    assert_eq!(s4.hud_stage_label(), "STAGE 4: MATURE TULKUN");
+    let s4 = AxolotlBiology::from_commits(1200);
+    assert_eq!(s4.hud_stage_label(), "STAGE 4: MATURE AXOLOTL");
 
-    let s5 = TulkunBiology::from_commits(2500);
+    let s5 = AxolotlBiology::from_commits(2500);
     assert_eq!(s5.hud_stage_label(), "STAGE 5: ADULT BULL");
     assert!(s5.body_len > s0.body_len);
 }
@@ -102,7 +102,7 @@ fn hex_color_parser_handles_valid_and_invalid_strings() {
 #[test]
 fn deterministic_golden_hash_for_still_png_and_share_card() {
     let snap = demo_snapshot(1250);
-    let coat = TulkunCoat::from_snapshot(&snap, false);
+    let coat = AxolotlCoat::from_snapshot(&snap, false);
 
     let frame_a = render_still_frame(&snap, &coat, CameraView::Side);
     let frame_b = render_still_frame(&snap, &coat, CameraView::Side);

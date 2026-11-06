@@ -1,13 +1,13 @@
 [package]
-name = "git-tulkun"
-version = "1.2.0"
+name = "git-axolotl"
+version = "1.0.0"
 edition = "2021"
-description = "Draw a procedural pixel-art Tulkun whale from a GitHub account's commits and language colors, as a looping GIF for a profile README."
+description = "Draw a procedural pixel-art axolotl from a GitHub account contributions and language colors, as a looping GIF for a profile README."
 license = "MIT"
-repository = "https://github.com/PramudithaN/git-tulkun"
-homepage = "https://pramudithan.github.io/git-tulkun/"
+repository = "https://github.com/neonjava/git-axolotl"
+homepage = "https://neonjava.github.io/git-axolotl/"
 readme = "README.md"
-keywords = ["github", "profile", "tulkun", "pixel-art", "gif"]
+keywords = ["github", "profile", "axolotl", "pixel-art", "gif"]
 categories = ["command-line-utilities", "visualization"]
 
 [dependencies]

@@ -1,4 +1,4 @@
-name: Update Profile Tulkun
+name: Update Profile Axolotl
 
 on:
   schedule:
@@ -12,10 +12,10 @@ permissions:
   contents: write
 
 jobs:
-  update-tulkun:
+  update-axolotl:
     runs-on: ubuntu-latest
     steps:
-      - uses: PramudithaN/git-tulkun@v1
+      - uses: neonjava/git-axolotl@v1
         with:
           view: side
           window: annual

@@ -102,7 +102,7 @@ fn fetch_graphql_via_https(login: &str, token: &str) -> Result<Value, String> {
     });
     let resp = ureq::post("https://api.github.com/graphql")
         .set("Authorization", &format!("Bearer {token}"))
-        .set("User-Agent", "git-tulkun")
+        .set("User-Agent", "git-axolotl")
         .set("Accept", "application/vnd.github+json")
         .send_json(payload)
         .map_err(|e| format!("GitHub GraphQL HTTPS request failed: {e}"))?;
@@ -222,7 +222,7 @@ fn fetch_public_rest_snapshot(
 ) -> Result<AccountSnapshot, String> {
     let user_url = format!("https://api.github.com/users/{login}");
     let user_json: Value = ureq::get(&user_url)
-        .set("User-Agent", "git-tulkun")
+        .set("User-Agent", "git-axolotl")
         .set("Accept", "application/vnd.github+json")
         .call()
         .map_err(|e| format!("Failed to fetch GitHub user `{login}`: {e}"))?
@@ -233,7 +233,7 @@ fn fetch_public_rest_snapshot(
 
     let repos_url = format!("https://api.github.com/users/{login}/repos?per_page=100&sort=updated");
     let repos: Value = ureq::get(&repos_url)
-        .set("User-Agent", "git-tulkun")
+        .set("User-Agent", "git-axolotl")
         .set("Accept", "application/vnd.github+json")
         .call()
         .map_err(|e| format!("Failed to fetch repositories for `{login}`: {e}"))?
@@ -259,7 +259,7 @@ fn fetch_public_rest_snapshot(
 
     let contribs_url = format!("https://github-contributions-api.jogruber.de/v4/{login}");
     let contrib_json: Value = ureq::get(&contribs_url)
-        .set("User-Agent", "git-tulkun")
+        .set("User-Agent", "git-axolotl")
         .call()
         .map_err(|e| format!("Failed to fetch contributions for `{login}`: {e}"))?
         .into_json()

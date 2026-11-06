@@ -1,10 +1,10 @@
-//! Full-body procedural pixel-art Tulkun renderer (Baby Calf -> Yearling -> Adolescent -> Adult Female -> Adult Male Bull)
+//! Full-body procedural pixel-art Axolotl renderer (Baby Calf -> Yearling -> Adolescent -> Adult Female -> Adult Male Bull)
 //! with realistic deep-ocean cetacean swimming physics (slow, heavy, majestic), flapping pectoral scythe-wings,
 //! trailing kuru neural whips, dual tail flukes, 4x4 ordered Bayer dithering, and bottom-left pixel-art HUD metrics.
 
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
 
-use crate::coat::{ShadeRamp, TulkunCoat};
+use crate::coat::{ShadeRamp, AxolotlCoat};
 use crate::history::AccountSnapshot;
 
 /// Native canvas width in pixels (exported at 2x scale = 640px).
@@ -20,7 +20,7 @@ pub const OUTLINE_COLOR: [u8; 4] = [15, 18, 26, 255];
 
 const BAYER_4X4: [[u8; 4]; 4] = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
 
-/// Camera perspective for rendering the Tulkun.
+/// Camera perspective for rendering the Axolotl.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CameraView {
     /// Lateral side profile swim (shows calf-to-bull sensor crest, jaw triangles, and full fins).
@@ -33,11 +33,11 @@ pub enum CameraView {
 
 /// A rendered RGBA pixel buffer of `FRAME_WIDTH_PIXELS * FRAME_HEIGHT_PIXELS`.
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct TulkunFrame {
+pub struct AxolotlFrame {
     pub rgba_pixels: Vec<[u8; 4]>,
 }
 
-impl TulkunFrame {
+impl AxolotlFrame {
     pub fn as_rgba_bytes(&self) -> &[u8] {
         self.rgba_pixels.as_flattened()
     }
@@ -45,7 +45,7 @@ impl TulkunFrame {
 
 /// Biological growth parameters derived from commit/contribution count.
 #[derive(Clone, Copy, Debug)]
-pub struct TulkunBiology {
+pub struct AxolotlBiology {
     pub commits: u64,
     pub growth: f64,
     pub maturity: f64,
@@ -58,11 +58,11 @@ pub struct TulkunBiology {
     pub jaw_tooth_count: f64,
 }
 
-impl TulkunBiology {
-    /// Compute Tulkun life-stage proportions on a log-like curve (`0` through `2,500+` contributions):
-    /// - `0..150`: Stage 1: Baby Tulkun Calf
+impl AxolotlBiology {
+    /// Compute Axolotl life-stage proportions on a log-like curve (`0` through `2,500+` contributions):
+    /// - `0..150`: Stage 1: Baby Axolotl Calf
     /// - `150..500`: Stage 2: Yearling Calf
-    /// - `500..1,200`: Stage 3: Adolescent Tulkun
+    /// - `500..1,200`: Stage 3: Adolescent Axolotl
     /// - `1,200..2,500`: Stage 4: Adult Female
     /// - `2,500+`: Stage 5: Adult Male Bull
     pub fn from_commits(commits: u64) -> Self {
@@ -93,13 +93,13 @@ impl TulkunBiology {
         if self.commits >= 2500 {
             "Adult Male Bull (Hooked Hammer-Crest)"
         } else if self.commits >= 1200 {
-            "Mature Tulkun (Sloped Sensor Crest)"
+            "Mature Axolotl (Sloped Sensor Crest)"
         } else if self.commits >= 500 {
-            "Adolescent Tulkun"
+            "Adolescent Axolotl"
         } else if self.commits >= 150 {
             "Yearling Calf (Kuru Active)"
         } else {
-            "Baby Tulkun Calf"
+            "Baby Axolotl Calf"
         }
     }
 
@@ -107,7 +107,7 @@ impl TulkunBiology {
         if self.commits >= 2500 {
             "STAGE 5: ADULT BULL"
         } else if self.commits >= 1200 {
-            "STAGE 4: MATURE TULKUN"
+            "STAGE 4: MATURE AXOLOTL"
         } else if self.commits >= 500 {
             "STAGE 3: ADOLESCENT"
         } else if self.commits >= 150 {
@@ -247,22 +247,22 @@ fn pt_node(x: f64, y: f64, r: f64, u: f64) -> SpineNode {
     }
 }
 
-/// Render a single still frame of the Tulkun.
+/// Render a single still frame of the Axolotl.
 pub fn render_still_frame(
     snapshot: &AccountSnapshot,
-    coat: &TulkunCoat,
+    coat: &AxolotlCoat,
     view: CameraView,
-) -> TulkunFrame {
+) -> AxolotlFrame {
     render_swim_frame(snapshot, coat, view, 12)
 }
 
-/// Render frame `frame_index` (`0..LOOP_FRAME_COUNT`) of the Tulkun's seamless deep-ocean swimming loop.
+/// Render frame `frame_index` (`0..LOOP_FRAME_COUNT`) of the Axolotl's seamless deep-ocean swimming loop.
 pub fn render_swim_frame(
     snapshot: &AccountSnapshot,
-    coat: &TulkunCoat,
+    coat: &AxolotlCoat,
     view: CameraView,
     frame_index: u32,
-) -> TulkunFrame {
+) -> AxolotlFrame {
     let w = FRAME_WIDTH_PIXELS;
     let h = FRAME_HEIGHT_PIXELS;
     let mut rgba_pixels = vec![[0_u8; 4]; (w * h) as usize];
@@ -270,7 +270,7 @@ pub fn render_swim_frame(
     let effective_commits = snapshot
         .total_contributions
         .max(snapshot.monthly_contributions);
-    let bio = TulkunBiology::from_commits(effective_commits);
+    let bio = AxolotlBiology::from_commits(effective_commits);
 
     // Seamless slow 5-second period phase in [0, TAU)
     let loop_turn = TAU * f64::from(frame_index % LOOP_FRAME_COUNT) / f64::from(LOOP_FRAME_COUNT);
@@ -532,7 +532,7 @@ pub fn render_swim_frame(
         }
     }
 
-    // 1px Dark Pixel-Art Outline Pass around the Tulkun
+    // 1px Dark Pixel-Art Outline Pass around the Axolotl
     let orig = rgba_pixels.clone();
     let stride = w as usize;
     for py in min_y..=max_y {
@@ -558,12 +558,12 @@ pub fn render_swim_frame(
     paint_metrics_hud(&mut rgba_pixels, w, h, &bio, coat, snapshot);
 
     let _ = n_pts;
-    TulkunFrame { rgba_pixels }
+    AxolotlFrame { rgba_pixels }
 }
 
 /// Build the spine and appendages for a given `loop_turn` phase (`0..TAU`) with realistic, gentle deep-sea motion.
 fn build_pose_geometry(
-    bio: &TulkunBiology,
+    bio: &AxolotlBiology,
     view: CameraView,
     loop_turn: f64,
     w: u32,
@@ -1012,7 +1012,7 @@ fn paint_deep_ocean_motes(
     w: u32,
     h: u32,
     loop_turn: f64,
-    coat: &TulkunCoat,
+    coat: &AxolotlCoat,
 ) {
     const MOTE_SEEDS: [(f64, f64, f64); 10] = [
         (38.0, 22.0, 0.0),
@@ -1046,15 +1046,15 @@ fn paint_deep_ocean_motes(
 }
 
 /// Paint the bottom-left pixel-art HUD metrics:
-/// Line 1: `<STAGE>` (e.g., `STAGE 4: MATURE TULKUN`, with a glowing language pip)
+/// Line 1: `<STAGE>` (e.g., `STAGE 4: MATURE AXOLOTL`, with a glowing language pip)
 /// Line 2: `CONTRIBUTIONS: <count>`
 /// Line 3: Top 3 languages with corresponding pixel-color indicator pips
 fn paint_metrics_hud(
     rgba_pixels: &mut [[u8; 4]],
     w: u32,
     h: u32,
-    bio: &TulkunBiology,
-    coat: &TulkunCoat,
+    bio: &AxolotlBiology,
+    coat: &AxolotlCoat,
     snapshot: &AccountSnapshot,
 ) {
     let base_x = 8_u32;
@@ -1105,10 +1105,10 @@ fn paint_metrics_hud(
 pub const SHARE_CARD_WIDTH_PIXELS: u32 = 320;
 pub const SHARE_CARD_HEIGHT_PIXELS: u32 = 160;
 
-/// Render a 320x160 native frame (exported at 4x = 1280x640) for social sharing ("Your Tulkun This Year" card & repo social preview).
+/// Render a 320x160 native frame (exported at 4x = 1280x640) for social sharing ("Your Axolotl This Year" card & repo social preview).
 pub fn render_share_card_frame(
     snapshot: &AccountSnapshot,
-    coat: &TulkunCoat,
+    coat: &AxolotlCoat,
     view: CameraView,
 ) -> Vec<[u8; 4]> {
     let w = SHARE_CARD_WIDTH_PIXELS;
@@ -1141,14 +1141,14 @@ pub fn render_share_card_frame(
     let effective_commits = snapshot
         .total_contributions
         .max(snapshot.monthly_contributions);
-    let bio = TulkunBiology::from_commits(effective_commits);
+    let bio = AxolotlBiology::from_commits(effective_commits);
 
-    draw_pixel_string(&mut pixels, w, h, 9, 9, "GIT-TULKUN", coat.cream[3]);
+    draw_pixel_string(&mut pixels, w, h, 9, 9, "GIT-AXOLOTL", coat.cream[3]);
     let stage_short = bio.hud_stage_label();
     let right_x = w.saturating_sub((stage_short.len() as u32) * 4 + 8);
     draw_pixel_string(&mut pixels, w, h, right_x, 9, stage_short, coat.belly[3]);
 
-    // Composite still Tulkun frame into center (y_offset = 14)
+    // Composite still Axolotl frame into center (y_offset = 14)
     let still = render_still_frame(snapshot, coat, view);
     for sy in 0..FRAME_HEIGHT_PIXELS {
         let dy = sy + 14;

@@ -182,8 +182,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "git-tulkun"
-version = "1.2.0"
+name = "git-axolotl"
+version = "1.0.0"
 dependencies = [
  "chrono",
  "gif",

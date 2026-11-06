@@ -49,9 +49,9 @@ jobs:
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
-          pkg_name="git-tulkun-${version}-${{ matrix.target }}"
+          pkg_name="git-axolotl-${version}-${{ matrix.target }}"
           mkdir -p "$pkg_name"
-          cp "target/${{ matrix.target }}/release/git-tulkun" "$pkg_name/"
+          cp "target/${{ matrix.target }}/release/git-axolotl" "$pkg_name/"
           cp README.md "$pkg_name/"
           tar -czf "${pkg_name}.tar.gz" "$pkg_name"
           if command -v sha256sum > /dev/null; then
@@ -65,9 +65,9 @@ jobs:
         shell: pwsh
         run: |
           $version = $env:GITHUB_REF_NAME.TrimStart('v')
-          $pkgName = "git-tulkun-$version-${{ matrix.target }}"
+          $pkgName = "git-axolotl-$version-${{ matrix.target }}"
           New-Item -ItemType Directory -Force -Path $pkgName | Out-Null
-          Copy-Item "target/${{ matrix.target }}/release/git-tulkun.exe" "$pkgName/"
+          Copy-Item "target/${{ matrix.target }}/release/git-axolotl.exe" "$pkgName/"
           Copy-Item "README.md" "$pkgName/"
           Compress-Archive -Path $pkgName -DestinationPath "$pkgName.zip" -Force
 
@@ -75,7 +75,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            git-tulkun-*.*
+            git-axolotl-*.*
 
       - name: Update floating major tag (v1)
         if: matrix.target == 'x86_64-unknown-linux-gnu' && startsWith(github.ref_name, 'v1.')

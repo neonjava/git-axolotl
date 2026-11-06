@@ -4,7 +4,7 @@ use chrono::{Datelike, Duration, NaiveDate};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// Window mode used to sum contributions for Tulkun stage progression.
+/// Window mode used to sum contributions for Axolotl stage progression.
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, Eq, PartialEq)]
 pub enum ContributionWindow {
     /// Current calendar year (January 1 through `observed_on`), resetting every January 1st.
@@ -32,13 +32,13 @@ pub struct ContributionDay {
     pub count: u32,
 }
 
-/// Complete snapshot of a GitHub user's public activity used to render the Tulkun.
+/// Complete snapshot of a GitHub user's public activity used to render the Axolotl.
 #[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub struct AccountSnapshot {
     pub login: String,
     pub account_id: u64,
     pub observed_on: NaiveDate,
-    /// Total contributions across the observed window (drives Tulkun growth from Calf to Patriarch).
+    /// Total contributions across the observed window (drives Axolotl growth from Calf to Patriarch).
     pub total_contributions: u64,
     /// Contributions made in the current calendar month.
     pub monthly_contributions: u64,

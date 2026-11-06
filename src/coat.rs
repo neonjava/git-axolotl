@@ -1,4 +1,4 @@
-//! Converts GitHub language hex colors into 4-shade pixel-art dither ramps for the Tulkun's
+//! Converts GitHub language hex colors into 4-shade pixel-art dither ramps for the Axolotl's
 //! carapace armor, ventral pleated belly, sensor crest core, and ivory war-stripes.
 
 use crate::history::AccountSnapshot;
@@ -6,9 +6,9 @@ use crate::history::AccountSnapshot;
 /// A 4-shade pixel-art ramp `[shadow, mid_dark, mid_light, highlight]` in RGBA.
 pub type ShadeRamp = [[u8; 4]; 4];
 
-/// Complete palette for rendering a Tulkun.
+/// Complete palette for rendering a Axolotl.
 #[derive(Clone, Debug)]
-pub struct TulkunCoat {
+pub struct AxolotlCoat {
     /// Adult dorsal carapace armor (or primary language dark ramp).
     pub armor: ShadeRamp,
     /// Calf teal skin & adult ventral pleated belly (derived from primary/secondary language).
@@ -105,8 +105,8 @@ pub fn blend_ramps(a: ShadeRamp, b: ShadeRamp, weight_b: f64) -> ShadeRamp {
     out
 }
 
-impl TulkunCoat {
-    /// Derive a Tulkun coat from the account's top GitHub languages blended with canon Pandoran biology.
+impl AxolotlCoat {
+    /// Derive a Axolotl coat from the account's top GitHub languages blended with canon Pandoran biology.
     pub fn from_snapshot(snapshot: &AccountSnapshot, use_canon_only: bool) -> Self {
         if use_canon_only || snapshot.languages.is_empty() {
             return Self {

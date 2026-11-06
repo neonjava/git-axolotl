@@ -1,12 +1,12 @@
-name: git-tulkun
-description: Generate a procedural pixel-art Tulkun whale GIF from your GitHub contributions and language colors.
+name: git-axolotl
+description: Generate a procedural pixel-art axolotl GIF from your GitHub contributions and language colors.
 branding:
   icon: anchor
   color: blue
 
 inputs:
   login:
-    description: GitHub account whose Tulkun to draw.
+    description: GitHub account whose Axolotl to draw.
     default: ${{ github.repository_owner }}
   view:
     description: Camera angle, one of side, dive, or top.
@@ -18,8 +18,8 @@ inputs:
     description: Set to 'true' to use canon Pandoran colors instead of GitHub language colors.
     default: "false"
   output-dir:
-    description: Folder, relative to the workspace, that receives tulkun.gif, tulkun.png, and share-card.png.
-    default: tulkun
+    description: Folder, relative to the workspace, that receives axolotl.gif, axolotl.png, and share-card.png.
+    default: axolotl
   commit:
     description: Set to 'true' to automatically commit and push the generated images.
     default: "true"
@@ -33,13 +33,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Install or build git-tulkun binary
+    - name: Install or build git-axolotl binary
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
         version=$(grep -m1 '^version' "$GITHUB_ACTION_PATH/Cargo.toml" | cut -d'"' -f2)
-        repo="${GITHUB_ACTION_REPOSITORY:-PramudithaN/git-tulkun}"
+        repo="${GITHUB_ACTION_REPOSITORY:-neonjava/git-axolotl}"
         case "$RUNNER_OS-$RUNNER_ARCH" in
           Linux-X64)     target="x86_64-unknown-linux-gnu"; ext="tar.gz" ;;
           Linux-ARM64)   target="aarch64-unknown-linux-gnu"; ext="tar.gz" ;;
@@ -49,20 +49,20 @@ runs:
           *)             target=""; ext="" ;;
         esac
 
-        install_dir="$RUNNER_TEMP/git-tulkun-bin"
+        install_dir="$RUNNER_TEMP/git-axolotl-bin"
         mkdir -p "$install_dir"
 
         if [ -n "$target" ] && gh release download "v$version" --repo "$repo" --dir "$install_dir" \
-            --pattern "git-tulkun-$version-$target.$ext" 2>/dev/null; then
-          echo "Downloaded pre-built git-tulkun v$version for $target"
+            --pattern "git-axolotl-$version-$target.$ext" 2>/dev/null; then
+          echo "Downloaded pre-built git-axolotl v$version for $target"
           if [ "$ext" = "zip" ]; then
-            unzip -q "$install_dir/git-tulkun-$version-$target.zip" -d "$install_dir"
+            unzip -q "$install_dir/git-axolotl-$version-$target.zip" -d "$install_dir"
           else
-            tar -xzf "$install_dir/git-tulkun-$version-$target.tar.gz" -C "$install_dir"
+            tar -xzf "$install_dir/git-axolotl-$version-$target.tar.gz" -C "$install_dir"
           fi
-          echo "$install_dir/git-tulkun-$version-$target" >> "$GITHUB_PATH"
+          echo "$install_dir/git-axolotl-$version-$target" >> "$GITHUB_PATH"
         else
-          echo "No pre-built release asset found; compiling git-tulkun from source..."
+          echo "No pre-built release asset found; compiling git-axolotl from source..."
           cargo build --release --manifest-path "$GITHUB_ACTION_PATH/Cargo.toml"
           echo "$GITHUB_ACTION_PATH/target/release" >> "$GITHUB_PATH"
         fi
@@ -72,66 +72,66 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
         GH_TOKEN: ${{ inputs.token }}
-        TULKUN_LOGIN: ${{ inputs.login }}
-        TULKUN_WINDOW: ${{ inputs.window }}
+        AXOLOTL_LOGIN: ${{ inputs.login }}
+        AXOLOTL_WINDOW: ${{ inputs.window }}
       run: |
-        git-tulkun collect "$TULKUN_LOGIN" --window "$TULKUN_WINDOW" --output "$RUNNER_TEMP/tulkun-snapshot.json"
+        git-axolotl collect "$AXOLOTL_LOGIN" --window "$AXOLOTL_WINDOW" --output "$RUNNER_TEMP/axolotl-snapshot.json"
 
-    - name: Render the Tulkun
+    - name: Render the Axolotl
       shell: bash
       env:
-        TULKUN_VIEW: ${{ inputs.view }}
-        TULKUN_CANON: ${{ inputs.canon }}
-        TULKUN_OUTPUT_DIR: ${{ inputs.output-dir }}
+        AXOLOTL_VIEW: ${{ inputs.view }}
+        AXOLOTL_CANON: ${{ inputs.canon }}
+        AXOLOTL_OUTPUT_DIR: ${{ inputs.output-dir }}
       run: |
         extra_flags=""
-        if [ "$TULKUN_CANON" = "true" ]; then
+        if [ "$AXOLOTL_CANON" = "true" ]; then
           extra_flags="--canon"
         fi
-        git-tulkun render "$RUNNER_TEMP/tulkun-snapshot.json" \
-          --output-dir "$TULKUN_OUTPUT_DIR" \
-          --view "$TULKUN_VIEW" $extra_flags
+        git-axolotl render "$RUNNER_TEMP/axolotl-snapshot.json" \
+          --output-dir "$AXOLOTL_OUTPUT_DIR" \
+          --view "$AXOLOTL_VIEW" $extra_flags
 
-    - name: Commit and push generated Tulkun assets
+    - name: Commit and push generated Axolotl assets
       if: inputs.commit == 'true'
       shell: bash
       env:
-        TULKUN_BRANCH: ${{ inputs.branch }}
-        TULKUN_OUTPUT_DIR: ${{ inputs.output-dir }}
-        TULKUN_TOKEN: ${{ inputs.token }}
+        AXOLOTL_BRANCH: ${{ inputs.branch }}
+        AXOLOTL_OUTPUT_DIR: ${{ inputs.output-dir }}
+        AXOLOTL_TOKEN: ${{ inputs.token }}
       run: |
-        rm -f "$TULKUN_OUTPUT_DIR/preview.html"
-        remote_url="https://x-access-token:${TULKUN_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+        rm -f "$AXOLOTL_OUTPUT_DIR/preview.html"
+        remote_url="https://x-access-token:${AXOLOTL_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
-        if [ -d .git ] && [ "${GITHUB_REF_NAME:-}" = "$TULKUN_BRANCH" ]; then
+        if [ -d .git ] && [ "${GITHUB_REF_NAME:-}" = "$AXOLOTL_BRANCH" ]; then
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$TULKUN_OUTPUT_DIR/tulkun.gif" "$TULKUN_OUTPUT_DIR/tulkun.png" "$TULKUN_OUTPUT_DIR/share-card.png"
-          git diff --cached --quiet || (git commit -m "chore: update Tulkun" && git push "$remote_url" "HEAD:$TULKUN_BRANCH")
+          git add "$AXOLOTL_OUTPUT_DIR/axolotl.gif" "$AXOLOTL_OUTPUT_DIR/axolotl.png" "$AXOLOTL_OUTPUT_DIR/share-card.png"
+          git diff --cached --quiet || (git commit -m "chore: update Axolotl" && git push "$remote_url" "HEAD:$AXOLOTL_BRANCH")
         else
           # The orphan publish replaces the whole branch, so only ever overwrite a branch this action owns.
-          if git ls-remote --exit-code --heads "$remote_url" "refs/heads/$TULKUN_BRANCH" > /dev/null 2>&1; then
-            guard_dir="$RUNNER_TEMP/tulkun-guard"
+          if git ls-remote --exit-code --heads "$remote_url" "refs/heads/$AXOLOTL_BRANCH" > /dev/null 2>&1; then
+            guard_dir="$RUNNER_TEMP/axolotl-guard"
             rm -rf "$guard_dir"
             git init -q "$guard_dir"
-            git -C "$guard_dir" fetch -q --depth=1 "$remote_url" "refs/heads/$TULKUN_BRANCH"
+            git -C "$guard_dir" fetch -q --depth=1 "$remote_url" "refs/heads/$AXOLOTL_BRANCH"
             last_subject=$(git -C "$guard_dir" log -1 --format=%s FETCH_HEAD)
-            if [ "$last_subject" != "chore: update Tulkun" ]; then
-              echo "::error::Refusing to overwrite branch '$TULKUN_BRANCH': it was not created by this action (latest commit: '$last_subject'). Use a dedicated branch, or check out that branch to commit on top of it."
+            if [ "$last_subject" != "chore: update Axolotl" ]; then
+              echo "::error::Refusing to overwrite branch '$AXOLOTL_BRANCH': it was not created by this action (latest commit: '$last_subject'). Use a dedicated branch, or check out that branch to commit on top of it."
               exit 1
             fi
           fi
 
-          work_dir="$RUNNER_TEMP/tulkun-publish"
+          work_dir="$RUNNER_TEMP/axolotl-publish"
           rm -rf "$work_dir"
-          mkdir -p "$work_dir/$TULKUN_OUTPUT_DIR"
-          cp "$TULKUN_OUTPUT_DIR/tulkun.gif" "$TULKUN_OUTPUT_DIR/tulkun.png" "$TULKUN_OUTPUT_DIR/share-card.png" "$work_dir/$TULKUN_OUTPUT_DIR/"
+          mkdir -p "$work_dir/$AXOLOTL_OUTPUT_DIR"
+          cp "$AXOLOTL_OUTPUT_DIR/axolotl.gif" "$AXOLOTL_OUTPUT_DIR/axolotl.png" "$AXOLOTL_OUTPUT_DIR/share-card.png" "$work_dir/$AXOLOTL_OUTPUT_DIR/"
           cd "$work_dir"
           git init -q
-          git checkout -q --orphan "$TULKUN_BRANCH"
+          git checkout -q --orphan "$AXOLOTL_BRANCH"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "$TULKUN_OUTPUT_DIR/tulkun.gif" "$TULKUN_OUTPUT_DIR/tulkun.png" "$TULKUN_OUTPUT_DIR/share-card.png"
-          git commit -q -m "chore: update Tulkun"
-          git push -f "$remote_url" "$TULKUN_BRANCH:$TULKUN_BRANCH"
+          git add "$AXOLOTL_OUTPUT_DIR/axolotl.gif" "$AXOLOTL_OUTPUT_DIR/axolotl.png" "$AXOLOTL_OUTPUT_DIR/share-card.png"
+          git commit -q -m "chore: update Axolotl"
+          git push -f "$remote_url" "$AXOLOTL_BRANCH:$AXOLOTL_BRANCH"
         fi

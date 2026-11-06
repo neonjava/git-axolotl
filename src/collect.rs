@@ -8,6 +8,7 @@ use std::collections::BTreeMap;
 use std::env;
 use std::io::ErrorKind;
 use std::process::Command;
+use std::time::Duration;
 
 use chrono::{DateTime, Datelike, NaiveDate, Utc};
 use serde_json::{json, Value};
@@ -43,6 +44,13 @@ query($login: String!) {
   }
 }
 "#;
+
+/// Every request gets a deadline so a stalled endpoint can't hang a scheduled run.
+fn http_agent() -> ureq::Agent {
+    ureq::AgentBuilder::new()
+        .timeout(Duration::from_secs(30))
+        .build()
+}
 
 /// Collect an `AccountSnapshot` for `login` using the default `Annual` window.
 pub fn collect_account_snapshot(login: &str) -> Result<AccountSnapshot, String> {
@@ -168,7 +176,8 @@ fn fetch_graphql_via_https(query: &str, login: &str, token: &str) -> Result<Valu
         "query": query,
         "variables": { "login": login }
     });
-    let resp = ureq::post("https://api.github.com/graphql")
+    let resp = http_agent()
+        .post("https://api.github.com/graphql")
         .set("Authorization", &format!("Bearer {token}"))
         .set("User-Agent", "git-axolotl")
         .set("Accept", "application/vnd.github+json")
@@ -292,7 +301,8 @@ fn fetch_public_rest_snapshot(
     window: ContributionWindow,
 ) -> Result<AccountSnapshot, String> {
     let user_url = format!("https://api.github.com/users/{login}");
-    let user_json: Value = ureq::get(&user_url)
+    let user_json: Value = http_agent()
+        .get(&user_url)
         .set("User-Agent", "git-axolotl")
         .set("Accept", "application/vnd.github+json")
         .call()
@@ -303,7 +313,8 @@ fn fetch_public_rest_snapshot(
     let account_id = user_json.get("id").and_then(Value::as_u64).unwrap_or(1);
 
     let repos_url = format!("https://api.github.com/users/{login}/repos?per_page=100&sort=updated");
-    let repos: Value = ureq::get(&repos_url)
+    let repos: Value = http_agent()
+        .get(&repos_url)
         .set("User-Agent", "git-axolotl")
         .set("Accept", "application/vnd.github+json")
         .call()
@@ -329,7 +340,8 @@ fn fetch_public_rest_snapshot(
     }
 
     let contribs_url = format!("https://github-contributions-api.jogruber.de/v4/{login}");
-    let contrib_json: Value = ureq::get(&contribs_url)
+    let contrib_json: Value = http_agent()
+        .get(&contribs_url)
         .set("User-Agent", "git-axolotl")
         .call()
         .map_err(|e| format!("Failed to fetch contributions for `{login}`: {e}"))?

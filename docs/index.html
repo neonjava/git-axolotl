@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>git-tulkun | Interactive GitHub README Whale Generator</title>
+  <title>git-axolotl | Interactive GitHub README Axolotl Generator</title>
   <link rel="icon" href="favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="192x192" href="favicon.png" />
@@ -34,16 +34,16 @@
     <header class="flex flex-wrap items-center justify-between gap-4 border-b border-[#30363d] pb-5">
       <div>
         <div class="flex items-center gap-2.5">
-          <img src="favicon.png" alt="git-tulkun logo" class="w-9 h-9 rounded-xl shadow-md border border-[#30363d] bg-[#161b22] object-contain p-0.5" />
-          <h1 class="text-2xl font-bold tracking-tight text-white">git-tulkun</h1>
-          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#1f6feb]/20 text-[#58a6ff] border border-[#1f6feb]/40">v1.1</span>
+          <img src="favicon.png" alt="git-axolotl logo" class="w-9 h-9 rounded-xl shadow-md border border-[#30363d] bg-[#161b22] object-contain p-0.5" />
+          <h1 class="text-2xl font-bold tracking-tight text-white">git-axolotl</h1>
+          <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-[#1f6feb]/20 text-[#58a6ff] border border-[#1f6feb]/40">v1.0</span>
         </div>
         <p class="text-sm text-[#8b949e] mt-1">
-          Enter your GitHub username to preview your procedural pixel-art Tulkun, compare with a friend, or copy the setup snippets.
+          Enter your GitHub username to preview your procedural pixel-art Axolotl, compare with a friend, or copy the setup snippets.
         </p>
       </div>
       <div class="flex items-center gap-2.5">
-        <a href="https://github.com/PramudithaN/git-tulkun" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#21262d] border border-[#30363d] text-white hover:bg-[#30363d] transition">
+        <a href="https://github.com/neonjava/git-axolotl" target="_blank" rel="noopener" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#21262d] border border-[#30363d] text-white hover:bg-[#30363d] transition">
           View on GitHub
         </a>
         <button id="downloadShareBtn" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#238636] text-white hover:bg-[#2ea043] transition shadow-sm">
@@ -58,7 +58,7 @@
         <label class="text-xs font-semibold text-[#8b949e] block mb-1.5">GitHub Username</label>
         <div class="flex gap-2">
           <input id="userInput" type="text" value="" placeholder="Enter GitHub username (e.g. torvalds)" class="w-full rounded-lg bg-[#0d1117] border border-[#30363d] px-3 py-1.5 text-xs text-white focus:outline-none focus:border-[#58a6ff]" />
-          <button id="fetchUserBtn" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#1f6feb] text-white hover:bg-[#388bfd] transition whitespace-nowrap">Load Avatar</button>
+          <button id="fetchUserBtn" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#1f6feb] text-white hover:bg-[#388bfd] transition whitespace-nowrap">Load Axolotl</button>
         </div>
       </div>
 
@@ -77,14 +77,14 @@
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
           <div class="flex items-center gap-2">
             <span class="inline-block w-2 h-2 rounded-full bg-[#3fb950]"></span>
-            <span id="primaryCaption" class="font-semibold text-white text-sm">Demo Whale Preview</span>
+            <span id="primaryCaption" class="font-semibold text-white text-sm">Demo Axolotl Preview</span>
           </div>
           <span class="text-[#8b949e] font-mono">1280x560 High-Resolution 4x Pixel Art • Resets Jan 1st</span>
         </div>
         <div class="relative rounded-xl bg-[#0d1117] border border-[#30363d] p-4 flex justify-center min-h-[220px] items-center">
           <div id="primaryLoader" class="absolute inset-0 rounded-xl bg-[#0d1117]/95 flex flex-col items-center justify-center gap-3 z-10 transition-opacity duration-200 hidden">
             <div class="w-8 h-8 rounded-full border-2 border-[#30363d] border-t-[#58a6ff] animate-spin"></div>
-            <span id="primaryLoaderText" class="text-xs font-medium text-[#8b949e]">Loading Tulkun avatar...</span>
+            <span id="primaryLoaderText" class="text-xs font-medium text-[#8b949e]">Loading axolotl...</span>
           </div>
           <canvas id="mainCanvas" width="1280" height="560" class="w-full max-w-[820px] h-auto"></canvas>
         </div>
@@ -94,14 +94,14 @@
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
           <div class="flex items-center gap-2">
             <span class="inline-block w-2 h-2 rounded-full bg-[#58a6ff]"></span>
-            <span id="friendCaption" class="font-semibold text-white text-sm">@friend (Stage 3: Adolescent Tulkun)</span>
+            <span id="friendCaption" class="font-semibold text-white text-sm">@friend (Stage 3: Juvenile)</span>
           </div>
           <button id="closeCompareBtn" class="text-[#8b949e] hover:text-white">Close Comparison</button>
         </div>
         <div class="relative rounded-xl bg-[#0d1117] border border-[#30363d] p-4 flex justify-center min-h-[220px] items-center">
           <div id="friendLoader" class="absolute inset-0 rounded-xl bg-[#0d1117]/95 flex flex-col items-center justify-center gap-3 z-10 hidden">
             <div class="w-8 h-8 rounded-full border-2 border-[#30363d] border-t-[#58a6ff] animate-spin"></div>
-            <span id="friendLoaderText" class="text-xs font-medium text-[#8b949e]">Loading friend's Tulkun avatar...</span>
+            <span id="friendLoaderText" class="text-xs font-medium text-[#8b949e]">Loading friend's axolotl...</span>
           </div>
           <canvas id="friendCanvas" width="1280" height="560" class="w-full max-w-[820px] h-auto"></canvas>
         </div>
@@ -117,13 +117,13 @@
         </div>
         <pre id="mdCode" class="text-xs font-mono bg-[#0d1117] border border-[#30363d] rounded-lg p-3.5 overflow-x-auto text-[#c9d1d9] leading-relaxed"></pre>
         <p class="text-xs text-[#8b949e]">
-          Includes a clickable link back to the repository so visitors can discover how your whale was generated.
+          Includes a clickable link back to the repository so visitors can discover how your axolotl was generated.
         </p>
       </div>
 
       <div class="card p-4 space-y-2.5">
         <div class="flex items-center justify-between">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-[#8b949e]">Step 2: Create <code class="text-white">.github/workflows/tulkun.yml</code></h2>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-[#8b949e]">Step 2: Create <code class="text-white">.github/workflows/axolotl.yml</code></h2>
           <button id="copyYamlBtn" class="px-2.5 py-1 rounded-md text-xs font-medium bg-[#21262d] border border-[#30363d] text-white hover:bg-[#30363d] transition">Copy Workflow YAML</button>
         </div>
         <pre id="yamlCode" class="text-xs font-mono bg-[#0d1117] border border-[#30363d] rounded-lg p-3.5 overflow-x-auto text-[#c9d1d9] leading-relaxed"></pre>
@@ -131,7 +131,7 @@
     </section>
 
     <footer class="text-center text-xs text-[#8b949e] pt-4 border-t border-[#30363d]">
-      Unofficial fan-made open-source project. <em>Tulkun</em> and <em>Avatar: The Way of Water</em> are trademarks of 20th Century Studios and Lightstorm Entertainment.
+      Forked from <a class="underline" href="https://github.com/PramudithaN/git-tulkun">git-tulkun</a> by Pramuditha Nadun (MIT).
     </footer>
   </div>
 
@@ -188,6 +188,8 @@
       ':': [0b000, 0b010, 0b000, 0b010, 0b000],
       '-': [0b000, 0b000, 0b111, 0b000, 0b000],
       '.': [0b000, 0b000, 0b000, 0b000, 0b010],
+      '+': [0b000, 0b010, 0b111, 0b010, 0b000],
+      '#': [0b101, 0b111, 0b101, 0b111, 0b101],
       ' ': [0b000, 0b000, 0b000, 0b000, 0b000]
     };
 
@@ -220,81 +222,97 @@
       Dart: [0, 180, 219]
     };
 
-    function makeRamp(rgb, darkScale = 0.25, lightScale = 1.35) {
-      return [0, 0.35, 0.7, 1.0].map(t => {
-        const s = darkScale + (lightScale - darkScale) * t;
+    function makeRamp(rgb, bias) {
+      return [0.34, 0.58, 0.88, 1.18].map((scale, i) => {
+        const s = i === 3 ? Math.min(scale * bias, 1.35) : scale * bias;
+        const lift = Math.max(s - 0.5, 0) * 35;
         return [
-          Math.min(255, Math.max(12, Math.round(rgb[0] * s))),
-          Math.min(255, Math.max(14, Math.round(rgb[1] * s))),
-          Math.min(255, Math.max(18, Math.round(rgb[2] * s)))
+          Math.min(255, Math.max(14, Math.round(rgb[0] * s + lift))),
+          Math.min(255, Math.max(14, Math.round(rgb[1] * s + lift))),
+          Math.min(255, Math.max(18, Math.round(rgb[2] * s + lift)))
         ];
       });
     }
 
+    function blendRamps(a, b, w) {
+      return a.map((shade, i) => shade.map((v, c) => Math.round(v + (b[i][c] - v) * w)));
+    }
+
+    const NATURAL = {
+      skin: [[150, 92, 104], [205, 132, 142], [238, 176, 178], [255, 220, 214]],
+      markings: [[92, 56, 74], [128, 76, 92], [160, 100, 112], [188, 128, 134]],
+      belly: [[206, 160, 160], [236, 196, 190], [250, 222, 212], [255, 242, 232]],
+      fin: [[190, 130, 142], [226, 170, 174], [246, 204, 200], [255, 232, 226]],
+      gill: [[122, 24, 54], [176, 38, 70], [226, 66, 92], [250, 118, 128]],
+      gillTip: [[196, 60, 96], [240, 104, 124], [255, 150, 156], [255, 200, 196]]
+    };
+
     function buildCoatFromColors(c1 = [49, 120, 198], c2 = [222, 165, 132], c3 = [53, 114, 165], langs = null) {
       return {
-        armor: makeRamp(c1, 0.16, 0.58),
-        calfBlue: makeRamp(c1, 0.32, 1.25),
-        cream: [[124, 132, 138], [172, 180, 186], [216, 222, 226], [248, 250, 252]],
-        crestRed: makeRamp(c2, 0.35, 1.22),
-        tipGreen: makeRamp(c3, 0.45, 1.30),
+        skin: blendRamps(NATURAL.skin, makeRamp(c1, 1.0), 0.62),
+        markings: blendRamps(NATURAL.markings, makeRamp(c1, 0.55), 0.55),
+        belly: blendRamps(NATURAL.belly, makeRamp(c1, 1.1), 0.22),
+        fin: blendRamps(NATURAL.fin, makeRamp(c1, 1.05), 0.45),
+        gill: blendRamps(NATURAL.gill, makeRamp(c2, 0.95), 0.70),
+        gillTip: blendRamps(NATURAL.gillTip, makeRamp(c3, 1.1), 0.70),
         languages: langs
       };
     }
+
+    const LIGHT = [-0.30, -0.62, 0.72];
+    const HUD_RESERVED_BOTTOM = 22;
 
     function lerp(a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); }
     function smoothStep(t) { const c = Math.max(0, Math.min(1, t)); return c * c * (3 - 2 * c); }
     function ditherThreshold(x, y) { return (BAYER_4X4[y & 3][x & 3] + 0.5) / 16.0; }
     function chooseShade(ramp, b, x, y) {
       const pos = Math.max(0, Math.min(1, b)) * (ramp.length - 1);
-      const idx = Math.floor(pos) + ((pos - Math.floor(pos)) > ditherThreshold(x, y) ? 1 : 0);
-      return ramp[Math.min(ramp.length - 1, idx)];
+      const base = Math.floor(pos);
+      const idx = base + (pos - base > ditherThreshold(x, y) ? 1 : 0);
+      return ramp[Math.min(idx, ramp.length - 1)];
     }
-
     function hash2D(ix, iy, seed) {
-      let n = (ix * 374761393 + iy * 668265263 + seed * 1442695041) | 0;
-      n = (n ^ (n >> 13)) * 1274126177;
-      return ((n ^ (n >> 16)) >>> 0) / 4294967295.0;
+      let n = (Math.imul(ix, 374761393) + Math.imul(iy, 668265263) + Math.imul(seed, 1442695041)) | 0;
+      n = Math.imul(n ^ (n >>> 13), 1274126177);
+      return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
     }
     function smoothNoise(x, y, seed) {
-      const ix = Math.floor(x), iy = Math.floor(y);
-      const fx = x - ix, fy = y - iy;
+      const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
       const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
       const a = hash2D(ix, iy, seed), b = hash2D(ix + 1, iy, seed);
       const c = hash2D(ix, iy + 1, seed), d = hash2D(ix + 1, iy + 1, seed);
       return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
     }
+    function loginSeed(login) {
+      let h = 2166136261;
+      for (let i = 0; i < login.length; i++) h = Math.imul(h ^ login.charCodeAt(i), 16777619);
+      return h | 0;
+    }
 
     function getBio(commits) {
-      const g = Math.min(1.0, Math.max(0.0, Math.pow(commits / 2800.0, 0.45)));
+      const g = Math.max(0, Math.min(1, Math.pow(commits / 2800, 0.45)));
       const maturity = smoothStep((g - 0.14) / 0.82);
-      const femalePhase = smoothStep((g - 0.42) / 0.34);
-      const bullPhase = smoothStep((g - 0.72) / 0.25);
-      const bodyLen = lerp(64.0, 186.0, g);
-      const maxRadius = bodyLen * lerp(0.165, 0.115, maturity);
+      const elder = smoothStep((g - 0.80) / 0.15);
+      const bodyLen = lerp(72, 190, g);
       return {
-        commits, g, maturity, femalePhase, bullPhase, bodyLen, maxRadius,
-        finStubbiness: lerp(0.52, 1.16, maturity),
-        kuruScale: smoothStep((g - 0.12) / 0.48),
-        jawToothCount: Math.round(lerp(2.5, 6.0, maturity))
+        commits, maturity, elder, bodyLen,
+        frontLegs: smoothStep((g - 0.20) / 0.07),
+        backLegs: smoothStep((g - 0.39) / 0.07),
+        headR: bodyLen * lerp(0.158, 0.108, maturity),
+        gillScale: lerp(0.62, 1.05, maturity) + 0.42 * elder,
+        gillFronds: Math.round(lerp(2, 6, maturity)) + Math.round(elder * 2),
+        finScale: lerp(1.08, 0.86, maturity) + 0.26 * elder,
+        spotThreshold: lerp(0.82, 0.67, maturity)
       };
     }
 
+    function stageIndex(c) { return c >= 2500 ? 4 : c >= 1200 ? 3 : c >= 500 ? 2 : c >= 150 ? 1 : 0; }
     function getStageTitle(c) {
-      if (c >= 2500) return "Stage 5: Adult Male Bull";
-      if (c >= 1200) return "Stage 4: Mature Tulkun";
-      if (c >= 500) return "Stage 3: Adolescent Tulkun";
-      if (c >= 150) return "Stage 2: Yearling Calf";
-      return "Stage 1: Baby Tulkun Calf";
+      return ["Stage 1: Hatchling", "Stage 2: Larva", "Stage 3: Juvenile", "Stage 4: Adult", "Stage 5: Elder"][stageIndex(c)];
     }
+    function getHudStageLabel(c) { return getStageTitle(c).toUpperCase(); }
 
-    function getHudStageLabel(c) {
-      if (c >= 2500) return "STAGE 5: ADULT BULL";
-      if (c >= 1200) return "STAGE 4: MATURE TULKUN";
-      if (c >= 500) return "STAGE 3: ADOLESCENT";
-      if (c >= 150) return "STAGE 2: YEARLING CALF";
-      return "STAGE 1: BABY CALF";
-    }
+    function round(x, y, r, u) { return { x, y, rTop: r, rBot: r, coreTop: r, coreBot: r, u }; }
 
     function sampleChain(pts, sx, sy) {
       let bestNorm = Infinity, best = null;
@@ -302,24 +320,246 @@
         const a = pts[i], b = pts[i + 1];
         const vx = b.x - a.x, vy = b.y - a.y, lSq = vx * vx + vy * vy;
         if (lSq < 1e-6) continue;
-        const ox = sx - a.x, oy = sy - a.y;
-        const t = Math.max(0, Math.min(1, (ox * vx + oy * vy) / lSq));
-        const cx = a.x + t * vx, cy = a.y + t * vy, dist = Math.hypot(sx - cx, sy - cy);
-        const rTop = (a.rTop ?? a.r) + t * ((b.rTop ?? b.r) - (a.rTop ?? a.r));
-        const rBot = (a.rBot ?? a.r) + t * ((b.rBot ?? b.r) - (a.rBot ?? a.r));
-        const signedLat = (ox * vy - oy * vx) / Math.sqrt(lSq);
-        const activeR = signedLat < 0 ? rTop : rBot;
-        const norm = dist / activeR;
-        if (dist <= activeR && norm < bestNorm) {
+        const t = Math.max(0, Math.min(1, ((sx - a.x) * vx + (sy - a.y) * vy) / lSq));
+        const dx = sx - (a.x + t * vx), dy = sy - (a.y + t * vy), dist = Math.hypot(dx, dy);
+        const outerR = dy < 0 ? a.rTop + t * (b.rTop - a.rTop) : a.rBot + t * (b.rBot - a.rBot);
+        const coreR = dy < 0 ? a.coreTop + t * (b.coreTop - a.coreTop) : a.coreBot + t * (b.coreBot - a.coreBot);
+        const norm = dist / outerR;
+        if (dist <= outerR && norm < bestNorm) {
           bestNorm = norm;
-          best = {
-            u: a.u !== undefined ? (a.u + t * (b.u - a.u)) : ((i + t) / (pts.length - 1)),
-            dist, activeR, latFrac: signedLat / activeR,
-            nx: (sx - cx) / activeR, ny: (sy - cy) / activeR
-          };
+          best = { u: a.u + t * (b.u - a.u), dist, outerR, coreR, dx, dy };
         }
       }
       return best;
+    }
+
+    function litBrightness(nx, ny) {
+      const nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
+      return Math.max(0, nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]);
+    }
+
+    function bodyProfile(u) {
+      if (u < 0.20) {
+        const h = u / 0.20, shape = 0.52 + 0.48 * Math.sqrt(1 - (1 - h) * (1 - h));
+        return [1.00 * shape, 0.92 * shape];
+      }
+      if (u < 0.28) {
+        const t = smoothStep((u - 0.20) / 0.08);
+        return [lerp(1.00, 0.62, t), lerp(0.92, 0.64, t)];
+      }
+      if (u < 0.58) {
+        const bulge = 0.12 * Math.sin((u - 0.28) / 0.30 * Math.PI);
+        return [0.62 + bulge * 0.5, 0.64 + bulge];
+      }
+      const taper = Math.pow(Math.max(1 - (u - 0.58) / 0.42, 0), 1.15);
+      return [0.62 * taper, 0.64 * taper];
+    }
+
+    function finProfile(u, bio, turn) {
+      const frill = 1 + bio.elder * 0.16 * Math.sin(u * 46 - turn * 2);
+      const dorsal = u > 0.42 ? 0.44 * Math.sin(Math.PI * Math.pow((u - 0.42) / 0.58, 0.75)) : 0;
+      const ventral = u > 0.66 ? 0.36 * Math.sin(Math.PI * Math.pow((u - 0.66) / 0.34, 0.80)) : 0;
+      return [Math.max(0, dorsal * bio.finScale * frill), Math.max(0, ventral * bio.finScale * frill)];
+    }
+
+    function nodeAt(spine, u) {
+      return spine[Math.min(Math.round(u * (spine.length - 1)), spine.length - 1)];
+    }
+
+    function addGillStalk(parts, bio, rx, ry, angle, length, swayPhase, z) {
+      const SEGMENTS = 6, back = 1, lateral = -1, headR = bio.headR;
+      const stalk = [round(rx, ry, Math.max(headR * 0.20, 1.1), 0)];
+      const headings = [];
+      let x = rx, y = ry;
+      for (let s = 1; s <= SEGMENTS; s++) {
+        const t = s / SEGMENTS;
+        const heading = angle - t * 0.50 + Math.sin(swayPhase - t * 2.2) * 0.20 * t;
+        x += back * Math.cos(heading) * length / SEGMENTS;
+        y += lateral * Math.sin(heading) * length / SEGMENTS;
+        stalk.push(round(x, y, Math.max(lerp(headR * 0.18, 0.9, t), 0.9), t));
+        headings.push(heading);
+      }
+      for (let j = 0; j < bio.gillFronds; j++) {
+        const t = (j + 1) / (bio.gillFronds + 0.4);
+        const seg = Math.min(Math.floor(t * SEGMENTS), SEGMENTS - 1);
+        const base = stalk[seg + 1];
+        const reach = length * 0.30 * (1 - 0.45 * t);
+        for (const side of [-1, 1]) {
+          const spread = headings[seg] + side * 0.95 + Math.sin(swayPhase - t * 3) * 0.12;
+          parts.push({ z, kind: "frond", pts: [
+            round(base.x, base.y, 0.85, 0),
+            round(base.x + back * Math.cos(spread) * reach, base.y + lateral * Math.sin(spread) * reach, 0.75, 1)
+          ] });
+        }
+      }
+      parts.push({ z, kind: "stalk", pts: stalk });
+    }
+
+    function addLeg(parts, bio, hx, hy, length, phase, z) {
+      const headR = bio.headR, paddle = Math.sin(phase) * length * 0.22;
+      const kx = hx + length * 0.20 + paddle * 0.5, ky = hy + length * 0.55;
+      const fx = kx + length * 0.06 + paddle, fy = ky + length * 0.45;
+      parts.push({ z, kind: "leg", pts: [
+        round(hx, hy, Math.max(headR * 0.30, 1.2), 0),
+        round(kx, ky, Math.max(headR * 0.24, 1.1), 0.5),
+        round(fx, fy, Math.max(headR * 0.20, 1.0), 1)
+      ] });
+      const toeLen = Math.max(length * 0.36, 1.5), heading = Math.atan2(fy - ky, fx - kx);
+      for (const toe of [-0.72, 0, 0.72]) {
+        const a = heading + toe;
+        parts.push({ z, kind: "leg", pts: [
+          round(fx, fy, 0.95, 0),
+          round(fx + Math.cos(a) * toeLen, fy + Math.sin(a) * toeLen, 0.8, 1)
+        ] });
+      }
+    }
+
+    function buildPose(bio, turn) {
+      const len = bio.bodyLen, headR = bio.headR, nPts = Math.max(Math.round(len), 60);
+      const amp = headR * 0.44, pitch = Math.sin(Math.cos(turn) * 0.04);
+      const spine = [];
+      for (let i = 0; i < nPts; i++) {
+        const u = i / (nPts - 1);
+        const y = Math.sin(turn) * headR * 0.10 * Math.pow(1 - u, 1.3)
+          + Math.sin(u * Math.PI * 2 * 1.15 - turn) * amp * Math.pow(u, 1.3)
+          + (u - 0.35) * len * pitch;
+        const [ct, cb] = bodyProfile(u), [ft, fb] = finProfile(u, bio, turn);
+        const coreTop = Math.max(ct * headR, 0.6), coreBot = Math.max(cb * headR, 0.6);
+        spine.push({
+          x: -(0.5 - u) * len, y, coreTop, coreBot, u,
+          rTop: Math.max(coreTop + ft * headR, 1.2),
+          rBot: Math.max(coreBot + fb * headR, 1.2)
+        });
+      }
+
+      const parts = [];
+      const root = nodeAt(spine, 0.185), lengths = [1.30, 1.42, 1.18];
+      lengths.forEach((factor, i) => {
+        const length = headR * bio.gillScale * factor, phase = turn - i * 0.8;
+        const height = root.coreTop * (0.86 - i * 0.34);
+        addGillStalk(parts, bio, root.x - headR * 0.12, root.y - height * 0.9, 1.08 - i * 0.50, length * 0.94, phase + 0.5, -1);
+        addGillStalk(parts, bio, root.x + i * headR * 0.06, root.y - height, 1.34 - i * 0.50, length, phase, 2);
+      });
+      for (const [u, development, offset] of [[0.300, bio.frontLegs, 0], [0.585, bio.backLegs, Math.PI * 0.5]]) {
+        if (development < 0.05) continue;
+        const length = headR * 1.08 * development, node = nodeAt(spine, u);
+        addLeg(parts, bio, node.x - headR * 0.42, node.y + node.coreBot * 0.45, length * 0.92, turn + offset + Math.PI, -2);
+        addLeg(parts, bio, node.x, node.y + node.coreBot * 0.55, length, turn + offset, 3);
+      }
+      return { spine, parts };
+    }
+
+    const framingCache = new Map();
+    function computeFraming(bio) {
+      const key = bio.commits;
+      if (framingCache.has(key)) return framingCache.get(key);
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (let step = 0; step < 8; step++) {
+        const { spine, parts } = buildPose(bio, Math.PI * 2 * step / 8);
+        for (const p of spine.concat(parts.flatMap(part => part.pts))) {
+          const r = Math.max(p.rTop, p.rBot);
+          minX = Math.min(minX, p.x - r); maxX = Math.max(maxX, p.x + r);
+          minY = Math.min(minY, p.y - p.rTop); maxY = Math.max(maxY, p.y + p.rBot);
+        }
+      }
+      const scale = Math.min((NATIVE_W - 24) / Math.max(maxX - minX, 1), (NATIVE_H - HUD_RESERVED_BOTTOM - 12) / Math.max(maxY - minY, 1), 1);
+      const framing = { scale, centerX: (minX + maxX) / 2, centerY: (minY + maxY) / 2 };
+      framingCache.set(key, framing);
+      return framing;
+    }
+
+    function chainBounds(pts) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const p of pts) {
+        const r = Math.max(p.rTop, p.rBot) + 1;
+        minX = Math.min(minX, p.x - r); maxX = Math.max(maxX, p.x + r);
+        minY = Math.min(minY, p.y - r); maxY = Math.max(maxY, p.y + r);
+      }
+      return [
+        Math.max(Math.floor(minX), 1), Math.max(Math.floor(minY), 1),
+        Math.min(Math.ceil(maxX), NATIVE_W - 2), Math.min(Math.ceil(maxY), NATIVE_H - 2)
+      ];
+    }
+
+    function putPixel(buf, x, y, rgb) {
+      const i = (y * NATIVE_W + x) * 4;
+      buf[i] = rgb[0]; buf[i + 1] = rgb[1]; buf[i + 2] = rgb[2]; buf[i + 3] = 255;
+    }
+
+    function paintPart(buf, part, coat, farSide) {
+      const [x0, y0, x1, y1] = chainBounds(part.pts);
+      for (let py = y0; py <= y1; py++) {
+        for (let px = x0; px <= x1; px++) {
+          const hit = sampleChain(part.pts, px + 0.5, py + 0.5);
+          if (!hit) continue;
+          const ramp = part.kind === "leg" ? coat.skin
+            : part.kind === "frond" && hit.u > 0.45 ? coat.gillTip : coat.gill;
+          const r = Math.max(hit.coreR, 0.5);
+          const bright = 0.34 + 0.64 * litBrightness(hit.dx / r, hit.dy / r) - (farSide ? 0.26 : 0);
+          putPixel(buf, px, py, chooseShade(ramp, bright, px, py));
+        }
+      }
+    }
+
+    function paintBody(buf, spine, coat, bio, seed) {
+      const [x0, y0, x1, y1] = chainBounds(spine);
+      for (let py = y0; py <= y1; py++) {
+        for (let px = x0; px <= x1; px++) {
+          const hit = sampleChain(spine, px + 0.5, py + 0.5);
+          if (!hit) continue;
+          if (hit.dist > hit.coreR) {
+            const bright = hit.dist > hit.outerR - 0.9 ? 0.34 : Math.sin(hit.u * 120) > 0.55 ? 0.52 : 0.76;
+            putPixel(buf, px, py, chooseShade(coat.fin, bright, px, py));
+            continue;
+          }
+          const v = hit.dy / hit.coreR;
+          let ramp = coat.skin;
+          if (v > (hit.u < 0.22 ? 0.66 : 0.40)) ramp = coat.belly;
+          if (hit.u > 0.03 && v < 0.42 && smoothNoise(hit.u * bio.bodyLen / 4.2, v * bio.headR / 3.4, seed) > bio.spotThreshold) {
+            ramp = coat.markings;
+          }
+          let bright = 0.36 + 0.64 * litBrightness(hit.dx / hit.coreR, hit.dy / hit.coreR);
+          const onFlank = hit.u > 0.30 && hit.u < 0.60 && v > -0.35 && v < 0.55;
+          if (onFlank && bio.maturity > 0.25 && Math.sin(hit.u * bio.bodyLen * 0.62) > 0.82) bright -= 0.20;
+          putPixel(buf, px, py, chooseShade(ramp, bright, px, py));
+        }
+      }
+    }
+
+    function paintDisc(buf, cx, cy, r, rgb) {
+      const reach = Math.ceil(r) + 1, ix = Math.floor(cx), iy = Math.floor(cy);
+      for (let y = iy - reach; y <= iy + reach; y++) {
+        for (let x = ix - reach; x <= ix + reach; x++) {
+          if (Math.hypot(x + 0.5 - cx, y + 0.5 - cy) <= r && x > 0 && y > 0 && x < NATIVE_W - 1 && y < NATIVE_H - 1) {
+            putPixel(buf, x, y, rgb);
+          }
+        }
+      }
+    }
+
+    function paintFace(buf, spine, coat, bio, scale) {
+      const eyeR = Math.max(1.5, Math.min(3.4, bio.headR * scale * lerp(0.19, 0.145, bio.maturity)));
+      const eye = nodeAt(spine, 0.082), ex = eye.x, ey = eye.y - eye.coreTop * 0.20;
+      paintDisc(buf, ex, ey, eyeR, [20, 16, 26]);
+      paintDisc(buf, ex - eyeR * 0.35, ey - eyeR * 0.40, Math.max(eyeR * 0.34, 0.55), [250, 250, 255]);
+      for (let i = 0; i <= 40; i++) {
+        const t = i / 40, node = nodeAt(spine, lerp(0.004, 0.125, t));
+        const drop = 0.40 + 0.10 * Math.sin(t * Math.PI) - 0.36 * t * t * t;
+        const x = Math.floor(node.x), y = Math.floor(node.y + node.coreBot * drop);
+        if (buf[(y * NATIVE_W + x) * 4 + 3] !== 0) putPixel(buf, x, y, coat.markings[0]);
+      }
+    }
+
+    function paintOutline(buf) {
+      const orig = buf.slice(), stride = NATIVE_W * 4;
+      for (let y = 1; y < NATIVE_H - 1; y++) {
+        for (let x = 1; x < NATIVE_W - 1; x++) {
+          const i = (y * NATIVE_W + x) * 4 + 3;
+          if (orig[i] === 0 && (orig[i - 4] || orig[i + 4] || orig[i - stride] || orig[i + stride])) {
+            putPixel(buf, x, y, OUTLINE_COLOR);
+          }
+        }
+      }
     }
 
     function setOutlinedNativePixel(buf, w, h, px, py, rgb) {
@@ -336,11 +576,7 @@
           }
         }
       }
-      const idx = (py * w + px) * 4;
-      buf[idx] = rgb[0];
-      buf[idx + 1] = rgb[1];
-      buf[idx + 2] = rgb[2];
-      buf[idx + 3] = 255;
+      putPixel(buf, px, py, rgb);
     }
 
     function drawNativePixelString(buf, w, h, startX, startY, text, rgb) {
@@ -349,285 +585,70 @@
         const g = GLYPHS_3X5[ch] || GLYPHS_3X5[' '];
         for (let r = 0; r < 5; r++) {
           for (let c = 0; c < 3; c++) {
-            if ((g[r] >> (2 - c)) & 1) {
-              setOutlinedNativePixel(buf, w, h, cx + c, startY + r, rgb);
-            }
+            if ((g[r] >> (2 - c)) & 1) setOutlinedNativePixel(buf, w, h, cx + c, startY + r, rgb);
           }
         }
         cx += 4;
       }
     }
 
-    // Renders into a 320x140 native pixel buffer, then integer-upscales 4x to 1280x560 so every pixel and HUD glyph is razor-sharp
-    function renderTulkunHiRes(canvas, commits, coat, phase) {
-      const W = NATIVE_W, H = NATIVE_H;
-      const nativeBuf = new Uint8ClampedArray(W * H * 4);
-
-      const bio = getBio(commits);
-      const bodyLen = bio.bodyLen, maxRadius = bio.maxRadius;
-      const N = Math.max(36, Math.round(bodyLen));
-      const spine = [];
-      const dir = -1;
-      const startX = W * 0.50 + dir * (bodyLen * 0.42);
-      const centerY = H * 0.44;
-      const pitchAngle = Math.cos(phase) * 0.065;
-      const waveAmp = maxRadius * 0.62;
-
-      for (let i = 0; i < N; i++) {
-        const u = i / (N - 1);
-        const x = startX - dir * (u * bodyLen);
-        const headBob = Math.sin(phase) * (maxRadius * 0.14) * Math.pow(1 - u, 1.3);
-        const tailStroke = Math.sin(u * Math.PI * 2.35 - phase) * waveAmp * Math.pow(u, 0.92);
-        const pitchOffset = (u - 0.35) * bodyLen * Math.sin(pitchAngle);
-        const y = centerY + headBob + tailStroke + pitchOffset;
-
-        let rTop, rBot;
-        if (u < 0.24) {
-          const hu = u / 0.24;
-          rTop = maxRadius * lerp(0.38, 0.92, Math.pow(hu, 0.55));
-          const calfBump = Math.sin(hu * Math.PI) * (maxRadius * 0.16);
-          const femWedge = Math.pow(Math.max(0, 1 - hu), 1.2) * Math.sin(Math.min(1, hu * 4) * 1.57) * (maxRadius * 0.65);
-          const bullCrest = hu < 0.45
-            ? Math.sin((hu / 0.45) * 1.57) * (maxRadius * 1.35)
-            : Math.pow(Math.max(0, (1 - hu) / 0.55), 1.6) * (maxRadius * 0.75);
-          rTop += calfBump * (1 - bio.femalePhase) + femWedge * bio.femalePhase * (1 - bio.bullPhase * 0.4) + bullCrest * bio.bullPhase;
-          rBot = maxRadius * lerp(0.32, 0.96, Math.sin(Math.min(1, hu * 1.3) * 1.57));
-        } else if (u < 0.68) {
-          const env = Math.cos(((u - 0.24) / 0.44) * Math.PI * 0.48);
-          rTop = maxRadius * 0.95 * env;
-          rBot = maxRadius * 0.98 * env;
-        } else {
-          const taper = lerp(0.48, 0.13, Math.pow((u - 0.68) / 0.32, 0.85));
-          rTop = maxRadius * taper;
-          rBot = maxRadius * taper;
-        }
-        spine.push({ x, y, rTop: Math.max(1.2, rTop), rBot: Math.max(1.2, rBot), r: (rTop + rBot) * 0.5, u });
-      }
-
-      const getPt = (uVal) => spine[Math.min(spine.length - 1, Math.max(0, Math.round(uVal * (spine.length - 1))))];
-      const parts = [];
-      const finScale = bio.finStubbiness;
-      const wingFlap = Math.sin(phase - 0.65) * (maxRadius * 0.78);
-      const auxFlap = Math.cos(phase - 0.95) * (maxRadius * 0.42);
-      const flukeWhip = Math.cos(phase - 2.05) * (maxRadius * 0.72);
-
-      const opRoot = getPt(0.24), opLen = maxRadius * 1.15 * finScale;
-      parts.push({ z: 3, kind: 'opercular', pts: [
-        { x: opRoot.x, y: opRoot.y + opRoot.rBot * 0.35, r: maxRadius * 0.28 },
-        { x: opRoot.x - dir * opLen * 0.35, y: opRoot.y + opRoot.rBot * 0.35 + opLen * 0.65 + auxFlap * 0.5, r: maxRadius * 0.22 },
-        { x: opRoot.x - dir * opLen * 0.55, y: opRoot.y + opRoot.rBot * 0.35 + opLen * 0.95 + auxFlap, r: 1.1 }
-      ]});
-
-      if (bio.kuruScale > 0.05) {
-        const kEnd = getPt(0.44);
-        parts.push({ z: 2, kind: 'kuru', pts: [
-          { x: opRoot.x - dir * 3, y: opRoot.y + opRoot.rBot * 0.85, r: 1.2 },
-          { x: (opRoot.x + kEnd.x) * 0.5, y: opRoot.y + opRoot.rBot * 1.25 + 3 + auxFlap * 0.6, r: 1.0 },
-          { x: kEnd.x, y: kEnd.y + kEnd.rBot * 0.75, r: 0.9 }
-        ]});
-      }
-
-      const mainRoot = getPt(0.38), wingLen = maxRadius * 3.55 * finScale;
-      parts.push({ z: 4, kind: 'mainWing', pts: [
-        { x: mainRoot.x, y: mainRoot.y + mainRoot.rBot * 0.22, r: maxRadius * 0.42 },
-        { x: mainRoot.x - dir * wingLen * 0.36, y: mainRoot.y + wingLen * 0.28 + wingFlap * 0.35, r: maxRadius * 0.36 },
-        { x: mainRoot.x - dir * wingLen * 0.72, y: mainRoot.y + wingLen * 0.54 + wingFlap * 0.75, r: maxRadius * 0.24 },
-        { x: mainRoot.x - dir * wingLen * 1.02, y: mainRoot.y + wingLen * 0.72 + wingFlap * 1.15, r: 1.1 }
-      ]});
-
-      if (bio.maturity > 0.22) {
-        const vRoot = getPt(0.45), vLen = maxRadius * 1.85 * finScale * bio.maturity;
-        parts.push({ z: -2, kind: 'auxFlipper', pts: [
-          { x: vRoot.x, y: vRoot.y + vRoot.rBot * 0.75, r: maxRadius * 0.30 },
-          { x: vRoot.x - dir * (vLen * 0.12 - auxFlap * 0.3), y: vRoot.y + vRoot.rBot * 0.75 + vLen * 0.65, r: maxRadius * 0.22 },
-          { x: vRoot.x - dir * (vLen * 0.24 - auxFlap * 0.6), y: vRoot.y + vRoot.rBot * 0.75 + vLen * 1.02, r: 1.0 }
-        ]});
-      }
-
-      const pelvRoot = getPt(0.82), pScale = maxRadius * 1.10 * finScale;
-      parts.push({ z: -1, kind: 'fluke', pts: [
-        { x: pelvRoot.x, y: pelvRoot.y + pelvRoot.rBot * 0.6, r: pScale * 0.24 },
-        { x: pelvRoot.x - dir * pScale * 0.55, y: pelvRoot.y + pelvRoot.rBot * 0.7 + pScale * 0.45 + flukeWhip * 0.4, r: pScale * 0.32 },
-        { x: pelvRoot.x - dir * pScale * 0.85, y: pelvRoot.y + pelvRoot.rBot * 0.7 + pScale * 0.62 + flukeWhip * 0.7, r: 1.1 }
-      ]});
-
-      const tailRoot = getPt(0.96), fLen = maxRadius * 2.20 * finScale;
-      parts.push({ z: -1, kind: 'fluke', pts: [
-        { x: tailRoot.x, y: tailRoot.y, r: tailRoot.r * 0.9 },
-        { x: tailRoot.x - dir * fLen * 0.55, y: tailRoot.y - fLen * 0.14 + flukeWhip * 0.5, r: maxRadius * 0.25 },
-        { x: tailRoot.x - dir * fLen * 0.98, y: tailRoot.y - fLen * 0.20 + flukeWhip, r: 0.9 }
-      ]});
-      parts.push({ z: 2, kind: 'fluke', pts: [
-        { x: tailRoot.x, y: tailRoot.y + 1, r: tailRoot.r * 0.95 },
-        { x: tailRoot.x - dir * fLen * 0.50, y: tailRoot.y + fLen * 0.16 + flukeWhip * 0.5, r: maxRadius * 0.28 },
-        { x: tailRoot.x - dir * fLen * 1.05, y: tailRoot.y + fLen * 0.32 + flukeWhip, r: 0.9 }
-      ]});
-
-      const fitScale = 0.76;
-      const targetCX = W * 0.52 + Math.sin(phase) * 4.5;
-      const targetCY = (H - 22) * 0.46 + Math.cos(phase) * 2.0;
-      for (const p of spine) {
-        p.x = targetCX + (p.x - W * 0.5) * fitScale;
-        p.y = targetCY + (p.y - H * 0.44) * fitScale;
-        p.rTop *= fitScale; p.rBot *= fitScale; p.r *= fitScale;
-      }
-      for (const part of parts) {
-        for (const p of part.pts) {
-          p.x = targetCX + (p.x - W * 0.5) * fitScale;
-          p.y = targetCY + (p.y - H * 0.44) * fitScale;
-          p.r *= fitScale;
-        }
-      }
-
-      const LIGHT = [-0.30, -0.62, 0.72];
-      const fgParts = parts.filter(p => p.z > 0);
-      const bgParts = parts.filter(p => p.z < 0);
-
-      function shadePart(part, s, px, py, pIdx) {
-        let ramp = bio.maturity < 0.35 ? coat.calfBlue : coat.armor;
-        if (part.kind === 'mainWing' || part.kind === 'opercular') {
-          ramp = (s.u > 0.62 || Math.abs(s.latFrac) > 0.38) ? coat.cream : (bio.maturity < 0.4 ? coat.calfBlue : coat.armor);
-        } else if (part.kind === 'fluke') {
-          const fd = smoothNoise(s.u * 6.0, s.latFrac * 4.0, 55);
-          ramp = fd < bio.maturity * 1.15 ? (bio.maturity < 0.45 ? coat.calfBlue : coat.armor) : coat.cream;
-        } else if (part.kind === 'kuru') {
-          ramp = coat.calfBlue;
-        }
-        if (s.dist > s.activeR - 0.7 && s.activeR > 1.6) {
-          const c = ramp[0];
-          nativeBuf[pIdx] = c[0]; nativeBuf[pIdx + 1] = c[1]; nativeBuf[pIdx + 2] = c[2]; nativeBuf[pIdx + 3] = 255;
-          return;
-        }
-        const nz = Math.sqrt(Math.max(0, 1 - (s.nx * s.nx + s.ny * s.ny)));
-        const bright = 0.26 + 0.72 * Math.max(0, s.nx * LIGHT[0] + s.ny * LIGHT[1] + nz * LIGHT[2]);
-        const c = chooseShade(ramp, bright, px, py);
-        nativeBuf[pIdx] = c[0]; nativeBuf[pIdx + 1] = c[1]; nativeBuf[pIdx + 2] = c[2]; nativeBuf[pIdx + 3] = 255;
-      }
-
-      for (let py = 2; py < H - 2; py++) {
-        for (let px = 2; px < W - 2; px++) {
-          const sx = px + 0.5, sy = py + 0.5, pIdx = (py * W + px) * 4;
-          let hit = false;
-          for (const part of fgParts) {
-            const s = sampleChain(part.pts, sx, sy);
-            if (s) { shadePart(part, s, px, py, pIdx); hit = true; break; }
-          }
-          if (hit) continue;
-
-          const b = sampleChain(spine, sx, sy);
-          if (b) {
-            if (bio.bullPhase > 0.35 && b.u > 0.08 && b.u < 0.18 && b.ny < -0.55 && (b.u - 0.08) / 0.10 < 0.65 * bio.bullPhase) continue;
-            let ramp = bio.maturity < 0.38 ? coat.calfBlue : coat.armor;
-            const isVentral = b.ny > 0.12;
-            if (isVentral) ramp = (bio.maturity < 0.55 || b.u < 0.35) ? coat.cream : coat.calfBlue;
-            if (b.u < 0.18 && b.ny < -0.38) {
-              ramp = (bio.femalePhase > 0.3 && bio.bullPhase < 0.4 && b.u < 0.04) ? coat.tipGreen : coat.crestRed;
-            }
-            if (b.u > 0.03 && b.u < 0.22 && b.ny > -0.15 && b.ny < 0.68) {
-              const tooth = Math.sin((b.u - 0.03) * bio.jawToothCount * 32.0);
-              ramp = b.ny > 0.15 + Math.max(0, tooth) * 0.32 ? coat.cream : (bio.maturity < 0.38 ? coat.calfBlue : coat.armor);
-            }
-            if (!isVentral && b.u > 0.18) {
-              const swirl = Math.sin(b.u * 34.0 - b.ny * 5.0) + 0.5 * Math.cos(b.u * 19.0 + b.ny * 7.0);
-              if (swirl > lerp(0.15, 1.18, bio.maturity)) ramp = coat.cream;
-            }
-            if (Math.abs(b.u - 0.185) * bodyLen * fitScale < 2.2 && Math.abs(b.ny - 0.02) * b.activeR < 2.2) {
-              nativeBuf[pIdx] = 240; nativeBuf[pIdx + 1] = 175; nativeBuf[pIdx + 2] = 95; nativeBuf[pIdx + 3] = 255;
-              continue;
-            }
-            if (b.dist > b.activeR - 0.8) {
-              const c = ramp[0];
-              nativeBuf[pIdx] = c[0]; nativeBuf[pIdx + 1] = c[1]; nativeBuf[pIdx + 2] = c[2]; nativeBuf[pIdx + 3] = 255;
-              continue;
-            }
-            const nz = Math.sqrt(Math.max(0, 1 - (b.nx * b.nx + b.ny * b.ny)));
-            let bright = 0.24 + 0.74 * Math.max(0, b.nx * LIGHT[0] + b.ny * LIGHT[1] + nz * LIGHT[2]);
-            if (b.ny > 0.2 && b.u > 0.45 && b.u < 0.85 && Math.sin(b.u * 65.0) > 0.62) bright -= 0.22;
-            const c = chooseShade(ramp, bright, px, py);
-            nativeBuf[pIdx] = c[0]; nativeBuf[pIdx + 1] = c[1]; nativeBuf[pIdx + 2] = c[2]; nativeBuf[pIdx + 3] = 255;
-            continue;
-          }
-
-          for (const part of bgParts) {
-            const s = sampleChain(part.pts, sx, sy);
-            if (s) { shadePart(part, s, px, py, pIdx); break; }
-          }
-        }
-      }
-
-      // 1px Dark Outline Pass around the Tulkun
-      const mask = new Uint8Array(W * H);
-      for (let i = 0; i < W * H; i++) mask[i] = nativeBuf[i * 4 + 3];
-      for (let py = 2; py < H - 2; py++) {
-        for (let px = 2; px < W - 2; px++) {
-          const i = py * W + px;
-          if (mask[i] !== 0) continue;
-          if (mask[i - 1] || mask[i + 1] || mask[i - W] || mask[i + W]) {
-            const pIdx = i * 4;
-            nativeBuf[pIdx] = OUTLINE_COLOR[0];
-            nativeBuf[pIdx + 1] = OUTLINE_COLOR[1];
-            nativeBuf[pIdx + 2] = OUTLINE_COLOR[2];
-            nativeBuf[pIdx + 3] = 255;
-          }
-        }
-      }
-
-      // Crisp 3x5 Outlined Pixel-Art HUD in bottom-left corner (never blurry!)
-      const line1Y = H - 23;
-      const line2Y = H - 15;
-      const line3Y = H - 7;
+    function paintHud(buf, bio, coat, history) {
+      const w = NATIVE_W, h = NATIVE_H, baseX = 8;
       for (let dy = 0; dy < 5; dy++) {
-        for (let dx = 0; dx < 3; dx++) {
-          setOutlinedNativePixel(nativeBuf, W, H, 8 + dx, line1Y + dy, coat.calfBlue[3]);
-        }
+        for (let dx = 0; dx < 3; dx++) setOutlinedNativePixel(buf, w, h, baseX + dx, h - 23 + dy, coat.gill[3]);
       }
-      drawNativePixelString(nativeBuf, W, H, 14, line1Y, getHudStageLabel(commits), coat.cream[3]);
-      drawNativePixelString(nativeBuf, W, H, 8, line2Y, `CONTRIBUTIONS: ${commits}`, coat.calfBlue[3]);
-
-      // Line 3: Top 3 languages with matching pixel-color indicator dots
-      let langX = 8;
-      const langs = coat.languages || [
-        { name: "TypeScript", color: [49, 120, 198] },
-        { name: "Rust", color: [222, 165, 132] },
-        { name: "Python", color: [53, 114, 165] }
-      ];
-      for (const lang of langs.slice(0, 3)) {
-        const rgb = lang.color || [49, 120, 198];
+      drawNativePixelString(buf, w, h, baseX + 6, h - 23, getHudStageLabel(bio.commits), coat.belly[3]);
+      const line2 = `CONTRIBUTIONS: ${bio.commits}`;
+      drawNativePixelString(buf, w, h, baseX, h - 15, line2, coat.skin[3]);
+      if (history) {
+        const text = `${history.lifetime > bio.commits ? `ALL TIME: ${history.lifetime} ` : ""}SINCE ${history.since}`;
+        drawNativePixelString(buf, w, h, baseX + line2.length * 4 + 6, h - 15, text, coat.belly[2]);
+      }
+      let langX = baseX;
+      for (const lang of (coat.languages || []).slice(0, 3)) {
         for (let dy = 0; dy < 3; dy++) {
-          for (let dx = 0; dx < 3; dx++) {
-            setOutlinedNativePixel(nativeBuf, W, H, langX + dx, line3Y + 1 + dy, rgb);
-          }
+          for (let dx = 0; dx < 3; dx++) setOutlinedNativePixel(buf, w, h, langX + dx, h - 6 + dy, lang.color);
         }
         langX += 5;
         const shortName = lang.name.slice(0, 8);
-        drawNativePixelString(nativeBuf, W, H, langX, line3Y, shortName, coat.cream[2]);
+        drawNativePixelString(buf, w, h, langX, h - 7, shortName, coat.belly[2]);
         langX += shortName.length * 4 + 6;
       }
+    }
 
-      // Integer 4x Nearest-Neighbor Upscale into 1280x560 Canvas ImageData
-      const ctx = canvas.getContext('2d');
-      const outW = W * SCALE, outH = H * SCALE;
-      const outImg = ctx.createImageData(outW, outH);
-      const outData = outImg.data;
-      for (let ny = 0; ny < H; ny++) {
-        for (let nx = 0; nx < W; nx++) {
-          const sIdx = (ny * W + nx) * 4;
-          const r = nativeBuf[sIdx], g = nativeBuf[sIdx + 1], b = nativeBuf[sIdx + 2], a = nativeBuf[sIdx + 3];
-          if (a === 0) continue;
-          const baseY = ny * SCALE, baseX = nx * SCALE;
-          for (let dy = 0; dy < SCALE; dy++) {
-            let dRow = ((baseY + dy) * outW + baseX) * 4;
-            for (let dx = 0; dx < SCALE; dx++) {
-              outData[dRow] = r;
-              outData[dRow + 1] = g;
-              outData[dRow + 2] = b;
-              outData[dRow + 3] = a;
-              dRow += 4;
-            }
-          }
+    function renderAxolotlBuffer(commits, coat, turn, seed, history) {
+      const buf = new Uint8ClampedArray(NATIVE_W * NATIVE_H * 4);
+      const bio = getBio(commits), framing = computeFraming(bio);
+      const tx = NATIVE_W * 0.5 + Math.sin(turn) * 4;
+      const ty = (NATIVE_H - HUD_RESERVED_BOTTOM) * 0.5 + Math.cos(turn) * 2;
+      const { spine, parts } = buildPose(bio, turn);
+      for (const p of spine.concat(parts.flatMap(part => part.pts))) {
+        p.x = tx + (p.x - framing.centerX) * framing.scale;
+        p.y = ty + (p.y - framing.centerY) * framing.scale;
+        for (const k of ["rTop", "rBot", "coreTop", "coreBot"]) p[k] *= framing.scale;
+      }
+      parts.sort((a, b) => a.z - b.z);
+      for (const part of parts) if (part.z < 0) paintPart(buf, part, coat, true);
+      paintBody(buf, spine, coat, bio, seed);
+      paintFace(buf, spine, coat, bio, framing.scale);
+      for (const part of parts) if (part.z >= 0) paintPart(buf, part, coat, false);
+      paintOutline(buf);
+      paintHud(buf, bio, coat, history);
+      return buf;
+    }
+
+    function renderAxolotlHiRes(canvas, commits, coat, turn, seed, history) {
+      const buf = renderAxolotlBuffer(commits, coat, turn, seed, history);
+      const ctx = canvas.getContext("2d");
+      const out = ctx.createImageData(NATIVE_W * SCALE, NATIVE_H * SCALE);
+      for (let y = 0; y < NATIVE_H * SCALE; y++) {
+        const sy = Math.floor(y / SCALE);
+        for (let x = 0; x < NATIVE_W * SCALE; x++) {
+          const s = (sy * NATIVE_W + Math.floor(x / SCALE)) * 4, d = (y * NATIVE_W * SCALE + x) * 4;
+          out.data[d] = buf[s]; out.data[d + 1] = buf[s + 1]; out.data[d + 2] = buf[s + 2]; out.data[d + 3] = buf[s + 3];
         }
       }
-      ctx.putImageData(outImg, 0, 0);
+      ctx.putImageData(out, 0, 0);
     }
 
     let primaryUser = "";
@@ -636,10 +657,12 @@
     let friendUser = "";
     let friendCommits = 350;
     let friendCoat = buildCoatFromColors([222, 165, 132], [49, 120, 198], [65, 184, 131]);
+    let primaryHistory = null;
+    let friendHistory = null;
     let phase = 0;
 
     function updateSnippets() {
-      const yaml = `name: Update Tulkun
+      const yaml = `name: Update Axolotl
 
 on:
   schedule: [{ cron: "0 0 * * *" }]
@@ -650,15 +673,15 @@ permissions:
   contents: write
 
 jobs:
-  tulkun:
+  axolotl:
     runs-on: ubuntu-latest
     steps:
-      - uses: PramudithaN/git-tulkun@v1`;
+      - uses: neonjava/git-axolotl@v1`;
 
       const userTag = primaryUser || "YOUR_USERNAME";
       const md = `<p align="center">
-  <a href="https://github.com/PramudithaN/git-tulkun">
-    <img src="https://raw.githubusercontent.com/${userTag}/${userTag}/output/tulkun/tulkun.gif" width="640" alt="${userTag}'s git-tulkun" />
+  <a href="https://github.com/neonjava/git-axolotl">
+    <img src="https://raw.githubusercontent.com/${userTag}/${userTag}/output/axolotl/axolotl.gif" width="640" alt="${userTag}'s git-axolotl" />
   </a>
 </p>`;
 
@@ -666,7 +689,7 @@ jobs:
       document.getElementById("mdCode").textContent = md;
       document.getElementById("primaryCaption").textContent = primaryUser 
         ? `@${primaryUser} (${getStageTitle(primaryCommits)} • ${primaryCommits} contributions)`
-        : `Demo Whale Preview (${getStageTitle(primaryCommits)} • ${primaryCommits} contributions)`;
+        : `Demo Axolotl Preview (${getStageTitle(primaryCommits)} • ${primaryCommits} contributions)`;
     }
 
     function setLoaderVisible(isFriend, visible, login = "") {
@@ -674,7 +697,7 @@ jobs:
       const textEl = document.getElementById(isFriend ? "friendLoaderText" : "primaryLoaderText");
       const btn = document.getElementById(isFriend ? "compareBtn" : "fetchUserBtn");
       if (login && textEl) {
-        textEl.textContent = `Loading @${login}'s GitHub activity and rendering Tulkun...`;
+        textEl.textContent = `Loading @${login}'s GitHub activity and rendering Axolotl...`;
       }
       if (visible) {
         loader.classList.remove("hidden");
@@ -686,7 +709,7 @@ jobs:
         loader.classList.add("hidden");
         if (btn) {
           btn.disabled = false;
-          btn.textContent = isFriend ? "Compare" : "Load Avatar";
+          btn.textContent = isFriend ? "Compare" : "Load Axolotl";
         }
       }
     }
@@ -701,62 +724,52 @@ jobs:
       try {
         const currentYear = new Date().getFullYear();
         const [reposRes, contribRes] = await Promise.all([
-          fetch(`https://api.github.com/users/${encodeURIComponent(login)}/repos?per_page=30&sort=updated`).catch(() => null),
-          fetch(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(login)}?y=${currentYear}`).catch(() => null),
+          fetch(`https://api.github.com/users/${encodeURIComponent(login)}/repos?per_page=100&sort=updated`).catch(() => null),
+          fetch(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(login)}`).catch(() => null),
           minDelay
         ]);
 
-        let c1 = [49, 120, 198], c2 = [222, 165, 132], c3 = [53, 114, 165];
-        let repoFallbackCommits = 85;
-        let topLanguages = [];
-
-        if (reposRes && reposRes.ok) {
-          const repos = await reposRes.json();
-          const counts = {};
-          for (const r of repos) {
-            if (r.language) {
-              counts[r.language] = (counts[r.language] || 0) + 1;
-            }
-          }
-          topLanguages = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
-          if (topLanguages.length > 0) {
-            c1 = LANG_COLORS[topLanguages[0]] || hashColor(topLanguages[0]);
-            c2 = (topLanguages.length > 1 && LANG_COLORS[topLanguages[1]]) ? LANG_COLORS[topLanguages[1]] : (topLanguages.length > 1 ? hashColor(topLanguages[1]) : c1);
-            c3 = (topLanguages.length > 2 && LANG_COLORS[topLanguages[2]]) ? LANG_COLORS[topLanguages[2]] : (topLanguages.length > 2 ? hashColor(topLanguages[2]) : c2);
-          }
-          repoFallbackCommits = Math.max(40, repos.length * 18);
+        if (!reposRes || !reposRes.ok || !contribRes || !contribRes.ok) {
+          const notFound = reposRes && reposRes.status === 404;
+          throw new Error(notFound ? `GitHub user @${login} was not found.` : `Could not load @${login}. GitHub may be rate limiting this browser, so try again shortly.`);
         }
 
-        let actualCommits = repoFallbackCommits;
-        if (contribRes && contribRes.ok) {
-          const contribJson = await contribRes.json();
-          if (contribJson && contribJson.total && typeof contribJson.total[currentYear] === "number") {
-            actualCommits = Math.max(0, contribJson.total[currentYear]);
-          }
-        }
+        const repos = await reposRes.json();
+        const contribJson = await contribRes.json();
+        const totals = contribJson.total || {};
+        const years = Object.keys(totals).filter(y => totals[y] > 0).map(Number);
+        const actualCommits = totals[currentYear] || 0;
+        const history = years.length ? {
+          lifetime: years.reduce((sum, y) => sum + totals[y], 0),
+          since: Math.min(...years)
+        } : null;
 
-        const langList = [];
-        if (topLanguages.length > 0) {
-          for (const lName of topLanguages.slice(0, 3)) {
-            const col = LANG_COLORS[lName] || hashColor(lName);
-            langList.push({ name: lName, color: col });
-          }
-        } else {
-          langList.push({ name: "TypeScript", color: c1 }, { name: "Rust", color: c2 }, { name: "Python", color: c3 });
+        const counts = {};
+        for (const r of repos) {
+          if (r.language && !r.fork) counts[r.language] = (counts[r.language] || 0) + 1;
         }
+        const topLanguages = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 3);
+        const langList = topLanguages.map(name => ({ name, color: LANG_COLORS[name] || hashColor(name) }));
+        const c1 = langList[0] ? langList[0].color : undefined;
+        const c2 = langList[1] ? langList[1].color : c1;
+        const c3 = langList[2] ? langList[2].color : c2;
+        const coat = buildCoatFromColors(c1, c2, c3, langList);
 
         if (isFriend) {
           friendUser = login;
           friendCommits = actualCommits;
-          friendCoat = buildCoatFromColors(c1, c2, c3, langList);
+          friendCoat = coat;
+          friendHistory = history;
           document.getElementById("friendCaption").textContent = `@${friendUser} (${getStageTitle(friendCommits)} • ${friendCommits} contributions)`;
         } else {
           primaryUser = login;
           primaryCommits = actualCommits;
-          primaryCoat = buildCoatFromColors(c1, c2, c3, langList);
+          primaryCoat = coat;
+          primaryHistory = history;
           updateSnippets();
         }
-      } catch (_) {
+      } catch (err) {
+        document.getElementById(isFriend ? "friendCaption" : "primaryCaption").textContent = err.message;
       } finally {
         setLoaderVisible(isFriend, false);
       }
@@ -798,14 +811,14 @@ jobs:
       setTimeout(() => { e.target.textContent = "Copy Markdown"; }, 1500);
     });
 
-    // High-Resolution 1280x640 Share Card Exporter with Crisp Vector Header & 4x Pixel-Art Tulkun
+    // High-Resolution 1280x640 Share Card Exporter with Crisp Vector Header & 4x Pixel-Art Axolotl
     document.getElementById("downloadShareBtn").addEventListener("click", () => {
       const shareCanvas = document.createElement("canvas");
       shareCanvas.width = 1280;
       shareCanvas.height = 640;
       const sctx = shareCanvas.getContext("2d");
 
-      // Deep ocean slate card background
+      // Dark card background
       sctx.fillStyle = "#0d1117";
       sctx.fillRect(0, 0, 1280, 640);
 
@@ -827,7 +840,7 @@ jobs:
       // Crisp high-resolution header text
       sctx.fillStyle = "#f0f6fc";
       sctx.font = "bold 24px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
-      sctx.fillText(primaryUser ? `git-tulkun  |  @${primaryUser}` : `git-tulkun  |  Demo Preview`, 40, 60);
+      sctx.fillText(primaryUser ? `git-axolotl  |  @${primaryUser}` : `git-axolotl  |  Demo Preview`, 40, 60);
 
       sctx.fillStyle = "#58a6ff";
       sctx.font = "600 22px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif";
@@ -840,8 +853,8 @@ jobs:
       sctx.drawImage(document.getElementById("mainCanvas"), 0, 72, 1280, 560);
 
       // Bottom-right stage progression indicator
-      const stages = ["1. Calf", "2. Yearling", "3. Adolescent", "4. Mature", "5. Bull"];
-      const activeIdx = primaryCommits >= 2500 ? 4 : primaryCommits >= 1200 ? 3 : primaryCommits >= 500 ? 2 : primaryCommits >= 150 ? 1 : 0;
+      const stages = ["1. Hatchling", "2. Larva", "3. Juvenile", "4. Adult", "5. Elder"];
+      const activeIdx = stageIndex(primaryCommits);
       let sx = 640;
       sctx.font = "bold 17px monospace";
       for (let i = 0; i < stages.length; i++) {
@@ -851,16 +864,16 @@ jobs:
       }
 
       const a = document.createElement("a");
-      a.download = `${primaryUser || "demo"}-tulkun-share-card.png`;
+      a.download = `${primaryUser || "demo"}-axolotl-share-card.png`;
       a.href = shareCanvas.toDataURL("image/png");
       a.click();
     });
 
     function animate() {
       phase += 0.12;
-      renderTulkunHiRes(document.getElementById("mainCanvas"), primaryCommits, primaryCoat, phase);
+      renderAxolotlHiRes(document.getElementById("mainCanvas"), primaryCommits, primaryCoat, phase, loginSeed(primaryUser), primaryHistory);
       if (friendUser) {
-        renderTulkunHiRes(document.getElementById("friendCanvas"), friendCommits, friendCoat, phase + 1.2);
+        renderAxolotlHiRes(document.getElementById("friendCanvas"), friendCommits, friendCoat, phase + 1.2, loginSeed(friendUser), friendHistory);
       }
       setTimeout(() => requestAnimationFrame(animate), 66);
     }

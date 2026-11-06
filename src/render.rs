@@ -611,7 +611,7 @@ fn body_profile(u: f64, view: CameraView) -> (f64, f64) {
         (0.62 + bulge * 0.5, 0.64 + bulge)
     } else {
         let t = (u - 0.58) / 0.42;
-        let taper = (1.0 - t).powf(1.15);
+        let taper = (1.0 - t).max(0.0).powf(1.15);
         (0.62 * taper, 0.64 * taper)
     }
 }

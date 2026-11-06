@@ -1,23 +1,23 @@
 # Senior Developer & Security Guidelines (Coding Agent Instructions)
 
 > **CRITICAL INSTRUCTION FOR ALL AI CODING AGENTS**:
-> Whenever you analyze, plan, edit, or refactor code in this repository (**git-tulkun**), you must **strictly adhere** to all architectural best practices, security standards, UI/UX conventions, documentation maintenance, and commit conventions detailed in this document.
+> Whenever you analyze, plan, edit, or refactor code in this repository (**git-axolotl**), you must **strictly adhere** to all architectural best practices, security standards, UI/UX conventions, documentation maintenance, and commit conventions detailed in this document.
 
 ---
 
 ## 1. Project Overview & Architecture
 
-**git-tulkun** is a production-grade application engineered with **Rust**.
+**git-axolotl** is a production-grade application engineered with **Rust**.
 
 > A high-performance, memory-safe Rust system application.
 
 ### Project Structure & Separation of Concerns:
 ```text
-git-tulkun/
+git-axolotl/
 ├── .github                  # CI/CD & Container Orchestration
 │   └── workflows
 │       ├── release.yml
-│       └── tulkun.yml
+│       └── axolotl.yml
 ├── src                      # Application Source Code
 │   ├── coat.rs
 │   ├── collect.rs

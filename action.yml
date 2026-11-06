@@ -12,7 +12,7 @@ inputs:
     description: Camera angle, one of side, dive, or top.
     default: side
   window:
-    description: Contribution window, one of annual (Jan 1 reset) or rolling (trailing 365 days).
+    description: Contribution window, one of annual (Jan 1 reset), rolling (trailing 365 days), or all (every year, never resets).
     default: annual
   natural:
     description: Set to 'true' to use natural pink axolotl colors instead of GitHub language colors.
@@ -27,7 +27,7 @@ inputs:
     description: Target branch when commit is 'true' (defaults to orphan 'output' branch to prevent main history bloat).
     default: output
   token:
-    description: Token for reading public data and pushing to the output branch.
+    description: Token for reading data and pushing to the output branch. Use a personal token to count private contributions without enabling them on your profile.
     default: ${{ github.token }}
 
 runs:

@@ -1,7 +1,7 @@
 //! CLI entrypoint for `git-axolotl`.
 //!
 //! Commands:
-//! - `git-axolotl collect <login> [--window annual|rolling] [--output snapshot.json]`
+//! - `git-axolotl collect <login> [--window annual|rolling|all] [--output snapshot.json]`
 //! - `git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--natural]`
 //! - `git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--natural]`
 
@@ -13,7 +13,7 @@ use std::process::ExitCode;
 use chrono::NaiveDate;
 use git_axolotl::coat::AxolotlCoat;
 use git_axolotl::collect::collect_account_snapshot_with_window;
-use git_axolotl::history::{AccountSnapshot, ContributionWindow, LanguageShare};
+use git_axolotl::history::{AccountSnapshot, ContributionWindow, LanguageShare, YearTotal};
 use git_axolotl::output::{encode_gif, encode_png, encode_preview_html, encode_share_card_png};
 use git_axolotl::render::{
     render_share_card_frame, render_still_frame, render_swim_loop, AxolotlBiology, CameraView,
@@ -59,6 +59,14 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                 }
             }
             let snapshot = collect_account_snapshot_with_window(login, window)?;
+            eprintln!(
+                "@{login}: {} all-time contributions ({} private) since {}",
+                snapshot.lifetime_contributions,
+                snapshot.lifetime_private_contributions,
+                snapshot
+                    .first_active_year()
+                    .map_or_else(|| "unknown".to_owned(), |y| y.to_string()),
+            );
             let json = serde_json::to_string_pretty(&snapshot).map_err(|e| e.to_string())?;
             if let Some(path) = output_path {
                 fs::write(&path, format!("{json}\n"))
@@ -161,6 +169,18 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                         repo_count: 5,
                     },
                 ],
+                lifetime_contributions: commits + 3200,
+                lifetime_private_contributions: 900,
+                yearly_contributions: vec![
+                    YearTotal {
+                        year: 2023,
+                        count: 3200,
+                    },
+                    YearTotal {
+                        year: 2026,
+                        count: commits,
+                    },
+                ],
             };
             render_to_directory(&demo_snapshot, &output_dir, view, natural_only)
         }
@@ -183,8 +203,9 @@ fn parse_window(s: &str) -> Result<ContributionWindow, String> {
     match s.to_lowercase().as_str() {
         "annual" | "year" => Ok(ContributionWindow::Annual),
         "rolling" | "rolling365" | "365" => Ok(ContributionWindow::Rolling365),
+        "all" | "lifetime" => Ok(ContributionWindow::Lifetime),
         _ => Err(format!(
-            "unknown window `{s}` (expected `annual` or `rolling`)"
+            "unknown window `{s}` (expected `annual`, `rolling`, or `all`)"
         )),
     }
 }
@@ -236,7 +257,7 @@ fn render_to_directory(
 
 fn usage_text() -> String {
     "Usage:\n  \
-     git-axolotl collect <login> [--window annual|rolling] [--output snapshot.json]\n  \
+     git-axolotl collect <login> [--window annual|rolling|all] [--output snapshot.json]\n  \
      git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--natural]\n  \
      git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--natural]"
         .to_owned()

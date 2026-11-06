@@ -2,6 +2,7 @@ use chrono::NaiveDate;
 use git_axolotl::coat::{parse_hex_color, AxolotlCoat};
 use git_axolotl::history::{
     summarize_calendar_window, AccountSnapshot, ContributionDay, ContributionWindow, LanguageShare,
+    YearTotal,
 };
 use git_axolotl::output::{encode_gif, encode_png, encode_share_card_png};
 use git_axolotl::render::{
@@ -39,6 +40,9 @@ fn demo_snapshot(commits: u64) -> AccountSnapshot {
                 repo_count: 6,
             },
         ],
+        lifetime_contributions: 0,
+        lifetime_private_contributions: 0,
+        yearly_contributions: Vec::new(),
     }
 }
 
@@ -145,6 +149,62 @@ fn each_account_gets_its_own_spot_pattern() {
         render_still_frame(&first, &coat, CameraView::Side),
         render_still_frame(&second, &coat, CameraView::Side)
     );
+}
+
+#[test]
+fn lifetime_window_uses_every_year_and_annual_keeps_its_own_total() {
+    let history = vec![
+        YearTotal {
+            year: 2023,
+            count: 900,
+        },
+        YearTotal {
+            year: 2021,
+            count: 0,
+        },
+        YearTotal {
+            year: 2026,
+            count: 400,
+        },
+    ];
+
+    let mut annual = demo_snapshot(400);
+    annual.apply_history(history.clone(), 120, ContributionWindow::Annual);
+    assert_eq!(annual.total_contributions, 400);
+    assert_eq!(annual.lifetime_contributions, 1300);
+    assert_eq!(annual.lifetime_private_contributions, 120);
+    assert_eq!(annual.first_active_year(), Some(2023));
+
+    let mut lifetime = demo_snapshot(400);
+    lifetime.apply_history(history, 120, ContributionWindow::Lifetime);
+    assert_eq!(lifetime.total_contributions, 1300);
+}
+
+#[test]
+fn hud_shows_the_all_time_history() {
+    let plain = demo_snapshot(400);
+    let mut with_history = demo_snapshot(400);
+    with_history.apply_history(
+        vec![YearTotal {
+            year: 2023,
+            count: 900,
+        }],
+        0,
+        ContributionWindow::Annual,
+    );
+    let coat = AxolotlCoat::from_snapshot(&plain, false);
+    assert_ne!(
+        render_still_frame(&plain, &coat, CameraView::Side),
+        render_still_frame(&with_history, &coat, CameraView::Side)
+    );
+}
+
+#[test]
+fn old_snapshots_without_history_still_load() {
+    let json = r#"{"login":"a","account_id":1,"observed_on":"2026-01-01","total_contributions":5,
+        "monthly_contributions":5,"current_streak":0,"longest_streak":0,"languages":[]}"#;
+    let snap: AccountSnapshot = serde_json::from_str(json).expect("old snapshot parses");
+    assert_eq!(snap.lifetime_contributions, 0);
 }
 
 #[test]

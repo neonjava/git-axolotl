@@ -9,18 +9,19 @@ use std::env;
 use std::io::ErrorKind;
 use std::process::Command;
 
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Datelike, NaiveDate, Utc};
 use serde_json::{json, Value};
 
 use crate::history::{
-    rank_languages, summarize_calendar_window, AccountSnapshot, ContributionDay, ContributionWindow,
+    rank_languages, summarize_calendar_window, AccountSnapshot, ContributionDay,
+    ContributionWindow, YearTotal,
 };
 
 const ACCOUNT_QUERY: &str = r#"
 query($login: String!) {
   user(login: $login) {
     databaseId
-    repositories(first: 100, ownerAffiliations: OWNER, isFork: false, orderBy: {field: UPDATED_AT, direction: DESC}) {
+    repositories(first: 100, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC, orderBy: {field: UPDATED_AT, direction: DESC}) {
       nodes {
         primaryLanguage {
           name
@@ -29,6 +30,7 @@ query($login: String!) {
       }
     }
     contributionsCollection {
+      contributionYears
       contributionCalendar {
         weeks {
           contributionDays {
@@ -58,16 +60,18 @@ pub fn collect_account_snapshot_with_window(
     if let Ok(token) = env::var("GITHUB_TOKEN").or_else(|_| env::var("GH_TOKEN")) {
         let trimmed = token.trim();
         if !trimmed.is_empty() {
-            match fetch_graphql_via_https(login, trimmed).and_then(require_graphql_data) {
-                Ok(root) => return parse_graphql_snapshot(login, &root, window),
+            let fetch = |query: &str| fetch_graphql_via_https(query, login, trimmed);
+            match collect_via_graphql(login, window, &fetch) {
+                Ok(snapshot) => return Ok(snapshot),
                 Err(err) => failures.push(format!("GraphQL over HTTPS: {err}")),
             }
         }
     }
 
     // 2. Otherwise try `gh api graphql` if the user has the GitHub CLI installed and logged in locally.
-    match fetch_graphql_via_gh_cli(login).and_then(require_graphql_data) {
-        Ok(root) => return parse_graphql_snapshot(login, &root, window),
+    let fetch = |query: &str| fetch_graphql_via_gh_cli(query, login);
+    match collect_via_graphql(login, window, &fetch) {
+        Ok(snapshot) => return Ok(snapshot),
         Err(err) => failures.push(format!("gh CLI: {err}")),
     }
 
@@ -79,6 +83,70 @@ pub fn collect_account_snapshot_with_window(
             failures.join("; ")
         )
     })
+}
+
+/// Fetch the last year's calendar, then the total for every year the account has been active.
+fn collect_via_graphql(
+    login: &str,
+    window: ContributionWindow,
+    fetch: &dyn Fn(&str) -> Result<Value, String>,
+) -> Result<AccountSnapshot, String> {
+    let root = fetch(ACCOUNT_QUERY).and_then(require_graphql_data)?;
+    let mut snapshot = parse_graphql_snapshot(login, &root, window)?;
+
+    let years = parse_contribution_years(&root);
+    if !years.is_empty() {
+        let totals = fetch(&build_years_query(&years)).and_then(require_graphql_data)?;
+        let (yearly, private) = parse_year_totals(&totals, &years)?;
+        snapshot.apply_history(yearly, private, window);
+    }
+    Ok(snapshot)
+}
+
+fn parse_contribution_years(root: &Value) -> Vec<i32> {
+    root.pointer("/data/user/contributionsCollection/contributionYears")
+        .and_then(Value::as_array)
+        .map(|years| {
+            years
+                .iter()
+                .filter_map(Value::as_i64)
+                .map(|y| y as i32)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// One aliased `contributionsCollection` per year, because each is limited to a one-year span.
+fn build_years_query(years: &[i32]) -> String {
+    let fields: String = years
+        .iter()
+        .map(|y| {
+            format!(
+                "y{y}: contributionsCollection(from: \"{y}-01-01T00:00:00Z\", to: \"{y}-12-31T23:59:59Z\") {{ restrictedContributionsCount contributionCalendar {{ totalContributions }} }}\n"
+            )
+        })
+        .collect();
+    format!("query($login: String!) {{ user(login: $login) {{ {fields} }} }}")
+}
+
+fn parse_year_totals(root: &Value, years: &[i32]) -> Result<(Vec<YearTotal>, u64), String> {
+    let mut yearly = Vec::with_capacity(years.len());
+    let mut private = 0;
+    for &year in years {
+        let entry = root
+            .pointer(&format!("/data/user/y{year}"))
+            .ok_or_else(|| format!("GitHub returned no total for {year}"))?;
+        let count = entry
+            .pointer("/contributionCalendar/totalContributions")
+            .and_then(Value::as_u64)
+            .ok_or_else(|| format!("GitHub returned no total for {year}"))?;
+        private += entry
+            .get("restrictedContributionsCount")
+            .and_then(Value::as_u64)
+            .unwrap_or(0);
+        yearly.push(YearTotal { year, count });
+    }
+    Ok((yearly, private))
 }
 
 /// Reject GraphQL responses that report `errors`, so partial data never becomes an empty snapshot.
@@ -95,9 +163,9 @@ fn require_graphql_data(root: Value) -> Result<Value, String> {
     Ok(root)
 }
 
-fn fetch_graphql_via_https(login: &str, token: &str) -> Result<Value, String> {
+fn fetch_graphql_via_https(query: &str, login: &str, token: &str) -> Result<Value, String> {
     let payload = json!({
-        "query": ACCOUNT_QUERY,
+        "query": query,
         "variables": { "login": login }
     });
     let resp = ureq::post("https://api.github.com/graphql")
@@ -111,10 +179,10 @@ fn fetch_graphql_via_https(login: &str, token: &str) -> Result<Value, String> {
         .map_err(|e| format!("Invalid JSON from GitHub GraphQL API: {e}"))
 }
 
-fn fetch_graphql_via_gh_cli(login: &str) -> Result<Value, String> {
+fn fetch_graphql_via_gh_cli(query: &str, login: &str) -> Result<Value, String> {
     let output = Command::new("gh")
         .args(["api", "graphql", "-f"])
-        .arg(format!("query={ACCOUNT_QUERY}"))
+        .arg(format!("query={query}"))
         .arg("-f")
         .arg(format!("login={login}"))
         .output()
@@ -213,6 +281,9 @@ fn parse_graphql_snapshot(
         current_streak,
         longest_streak,
         languages: rank_languages(lang_counts),
+        lifetime_contributions: 0,
+        lifetime_private_contributions: 0,
+        yearly_contributions: Vec::new(),
     })
 }
 
@@ -270,7 +341,7 @@ fn fetch_public_rest_snapshot(
     let (total_contributions, monthly_contributions, current_streak, longest_streak) =
         summarize_calendar_window(&days, today, window);
 
-    Ok(AccountSnapshot {
+    let mut snapshot = AccountSnapshot {
         login: login.to_owned(),
         account_id,
         observed_on: today,
@@ -279,7 +350,23 @@ fn fetch_public_rest_snapshot(
         current_streak,
         longest_streak,
         languages: rank_languages(lang_counts),
-    })
+        lifetime_contributions: 0,
+        lifetime_private_contributions: 0,
+        yearly_contributions: Vec::new(),
+    };
+    snapshot.apply_history(yearly_from_days(&days), 0, window);
+    Ok(snapshot)
+}
+
+fn yearly_from_days(days: &[ContributionDay]) -> Vec<YearTotal> {
+    let mut by_year: BTreeMap<i32, u64> = BTreeMap::new();
+    for day in days {
+        *by_year.entry(day.date.year()).or_insert(0) += u64::from(day.count);
+    }
+    by_year
+        .into_iter()
+        .map(|(year, count)| YearTotal { year, count })
+        .collect()
 }
 
 fn parse_public_contributions(root: &Value) -> Result<Vec<ContributionDay>, String> {
@@ -352,6 +439,60 @@ mod tests {
         });
         let result = parse_graphql_snapshot("someone", &root, ContributionWindow::Annual);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn year_totals_sum_every_year_and_count_private_work() {
+        let root = json!({ "data": { "user": {
+            "y2024": {
+                "restrictedContributionsCount": 40,
+                "contributionCalendar": { "totalContributions": 100 }
+            },
+            "y2025": {
+                "restrictedContributionsCount": 2,
+                "contributionCalendar": { "totalContributions": 50 }
+            }
+        }}});
+        let (yearly, private) = parse_year_totals(&root, &[2025, 2024]).unwrap();
+        assert_eq!(yearly.iter().map(|y| y.count).sum::<u64>(), 150);
+        assert_eq!(private, 42);
+    }
+
+    #[test]
+    fn a_missing_year_fails_instead_of_undercounting() {
+        let root = json!({ "data": { "user": {} } });
+        assert!(parse_year_totals(&root, &[2024]).is_err());
+    }
+
+    #[test]
+    fn years_query_asks_for_each_year() {
+        let query = build_years_query(&[2021, 2026]);
+        assert!(query.contains("y2021: contributionsCollection(from: \"2021-01-01T00:00:00Z\""));
+        assert!(query.contains("y2026:"));
+    }
+
+    #[test]
+    fn public_days_group_by_year() {
+        let root = json!({ "contributions": [
+            { "date": "2026-01-02", "count": 3 },
+            { "date": "2021-05-01", "count": 1 },
+            { "date": "2026-03-02", "count": 4 }
+        ]});
+        let yearly = yearly_from_days(&parse_public_contributions(&root).unwrap());
+        assert_eq!(
+            yearly[0],
+            YearTotal {
+                year: 2021,
+                count: 1
+            }
+        );
+        assert_eq!(
+            yearly[1],
+            YearTotal {
+                year: 2026,
+                count: 7
+            }
+        );
     }
 
     #[test]

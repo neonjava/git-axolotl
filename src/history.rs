@@ -12,6 +12,15 @@ pub enum ContributionWindow {
     Annual,
     /// Trailing 365-day rolling window ending on `observed_on`.
     Rolling365,
+    /// Every year since the account's first contribution. Never resets.
+    Lifetime,
+}
+
+/// Contributions made in one calendar year.
+#[derive(Clone, Debug, Serialize, Deserialize, Eq, PartialEq)]
+pub struct YearTotal {
+    pub year: i32,
+    pub count: u64,
 }
 
 /// One language observed in a user's public repositories along with its GitHub hex color.
@@ -48,6 +57,15 @@ pub struct AccountSnapshot {
     pub longest_streak: u32,
     /// Top languages ranked by repository share.
     pub languages: Vec<LanguageShare>,
+    /// Contributions across every year on record.
+    #[serde(default)]
+    pub lifetime_contributions: u64,
+    /// How many of the lifetime contributions are private, when GitHub reports them.
+    #[serde(default)]
+    pub lifetime_private_contributions: u64,
+    /// Per-year history, oldest first.
+    #[serde(default)]
+    pub yearly_contributions: Vec<YearTotal>,
 }
 
 impl AccountSnapshot {
@@ -58,6 +76,31 @@ impl AccountSnapshot {
             h = (h ^ u64::from(b)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
         }
         h
+    }
+
+    /// The first year with any contributions.
+    pub fn first_active_year(&self) -> Option<i32> {
+        self.yearly_contributions
+            .iter()
+            .filter(|y| y.count > 0)
+            .map(|y| y.year)
+            .min()
+    }
+
+    /// Record the all-time history, and make it the growth total for the `Lifetime` window.
+    pub fn apply_history(
+        &mut self,
+        mut yearly: Vec<YearTotal>,
+        private: u64,
+        window: ContributionWindow,
+    ) {
+        yearly.sort_by_key(|y| y.year);
+        self.lifetime_contributions = yearly.iter().map(|y| y.count).sum();
+        self.lifetime_private_contributions = private;
+        self.yearly_contributions = yearly;
+        if window == ContributionWindow::Lifetime {
+            self.total_contributions = self.lifetime_contributions;
+        }
     }
 }
 
@@ -91,6 +134,7 @@ pub fn summarize_calendar_window(
         let in_window = match window {
             ContributionWindow::Annual => day.date.year_ce() == observed_on.year_ce(),
             ContributionWindow::Rolling365 => day.date >= rolling_cutoff,
+            ContributionWindow::Lifetime => true,
         };
         if in_window {
             total += u64::from(day.count);

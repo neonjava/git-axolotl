@@ -902,7 +902,7 @@ fn add_legs(
 
 /// Paint the bottom-left pixel-art HUD metrics:
 /// Line 1: `<STAGE>` (e.g., `STAGE 4: ADULT`, with a language-colored pip)
-/// Line 2: `CONTRIBUTIONS: <count>`
+/// Line 2: `CONTRIBUTIONS: <count>`, then `ALL TIME: <count> SINCE <year>` when history is known
 /// Line 3: Top 3 languages with corresponding pixel-color indicator pips
 fn paint_metrics_hud(
     rgba_pixels: &mut [[u8; 4]],
@@ -929,6 +929,24 @@ fn paint_metrics_hud(
 
     let line2 = format!("CONTRIBUTIONS: {}", bio.commits);
     draw_pixel_string(rgba_pixels, w, h, base_x, line2_y, &line2, coat.skin[3]);
+
+    let mut history = String::new();
+    if snapshot.lifetime_contributions > bio.commits {
+        history = format!("ALL TIME: {}", snapshot.lifetime_contributions);
+    }
+    if let Some(year) = snapshot.first_active_year() {
+        history = format!("{history} SINCE {year}").trim_start().to_owned();
+    }
+    let history_x = base_x + (line2.chars().count() as u32) * 4 + 6;
+    draw_pixel_string(
+        rgba_pixels,
+        w,
+        h,
+        history_x,
+        line2_y,
+        &history,
+        coat.belly[2],
+    );
 
     // Line 3: Top 3 languages with their respective pixel color dots
     let mut lang_x = base_x;

@@ -35,7 +35,7 @@ jobs:
   axolotl:
     runs-on: ubuntu-latest
     steps:
-      - uses: neonjava/git-axolotl@v1
+      - uses: neonjava/git-axolotl@v2
         with:
           view: side     # side | dive | top
           window: annual # annual | rolling | all
@@ -75,7 +75,7 @@ GitHub only reveals private contributions as anonymous counts. Repository names 
 - **Your own, without showing them on your profile:** create a personal access token with the `repo` and `read:user` scopes, save it as a repository secret, and pass it in:
 
   ```yaml
-  - uses: neonjava/git-axolotl@v1
+  - uses: neonjava/git-axolotl@v2
     with:
       token: ${{ secrets.AXOLOTL_TOKEN }}
   ```

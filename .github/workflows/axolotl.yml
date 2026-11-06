@@ -15,7 +15,7 @@ jobs:
   update-axolotl:
     runs-on: ubuntu-latest
     steps:
-      - uses: neonjava/git-axolotl@v1
+      - uses: neonjava/git-axolotl@v2
         with:
           view: side
           window: annual

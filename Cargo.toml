@@ -1,6 +1,6 @@
 [package]
 name = "git-axolotl"
-version = "1.0.0"
+version = "2.0.0"
 edition = "2021"
 description = "Draw a procedural pixel-art axolotl from a GitHub account contributions and language colors, as a looping GIF for a profile README."
 license = "MIT"

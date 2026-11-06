@@ -1,6 +1,6 @@
 # Security Policy
 
-Security fixes go to the latest `v1` release of `git-axolotl`.
+Security fixes go to the latest `v2` release of `git-axolotl`.
 
 ## Reporting a Vulnerability
 

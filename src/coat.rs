@@ -19,9 +19,22 @@ pub struct AxolotlCoat {
     pub fin: ShadeRamp,
     /// Gill stalks (secondary language).
     pub gill: ShadeRamp,
-    /// Feathery gill fronds (tertiary language).
+    /// Feathery gill fronds when no language tones are in use.
     pub gill_tip: ShadeRamp,
+    /// One tone per top language, shown on the spots and gill fronds.
+    pub tones: Vec<LanguageTone>,
 }
+
+/// A language's color on the axolotl.
+#[derive(Clone, Debug)]
+pub struct LanguageTone {
+    pub ramp: ShadeRamp,
+    /// Share of the spots this language gets, already softened so small languages stay visible.
+    pub spot_share: f64,
+}
+
+/// How many languages are listed in the HUD and painted on the axolotl.
+pub const TOP_LANGUAGE_COUNT: usize = 10;
 
 pub const NATURAL_SKIN: ShadeRamp = [
     [150, 92, 104, 255],
@@ -125,6 +138,7 @@ impl AxolotlCoat {
                 fin: NATURAL_FIN,
                 gill: NATURAL_GILL,
                 gill_tip: NATURAL_GILL_TIP,
+                tones: Vec::new(),
             };
         }
 
@@ -145,6 +159,44 @@ impl AxolotlCoat {
             fin: blend_ramps(NATURAL_FIN, build_ramp_from_rgb(lang1, 1.05), 0.45),
             gill: blend_ramps(NATURAL_GILL, build_ramp_from_rgb(lang2, 0.95), 0.70),
             gill_tip: blend_ramps(NATURAL_GILL_TIP, build_ramp_from_rgb(lang3, 1.1), 0.70),
+            tones: language_tones(snapshot),
         }
     }
+
+    /// Pick a spot color from `roll` (`0.0..=1.0`). The top language keeps the dark markings,
+    /// because its bright tone would vanish against skin of the same color.
+    pub fn spot_ramp(&self, roll: f64) -> &ShadeRamp {
+        let total: f64 = self.tones.iter().map(|t| t.spot_share).sum();
+        let mut remaining = roll * total;
+        for (i, tone) in self.tones.iter().enumerate() {
+            remaining -= tone.spot_share;
+            if remaining <= 0.0 {
+                return if i == 0 { &self.markings } else { &tone.ramp };
+            }
+        }
+        &self.markings
+    }
+
+    /// The color for gill frond number `index`, cycling through every language.
+    pub fn frond_ramp(&self, index: usize) -> &ShadeRamp {
+        if self.tones.is_empty() {
+            &self.gill_tip
+        } else {
+            &self.tones[index % self.tones.len()].ramp
+        }
+    }
+}
+
+fn language_tones(snapshot: &AccountSnapshot) -> Vec<LanguageTone> {
+    snapshot
+        .languages
+        .iter()
+        .take(TOP_LANGUAGE_COUNT)
+        .filter_map(|lang| {
+            parse_hex_color(&lang.hex_color).map(|rgb| LanguageTone {
+                ramp: build_ramp_from_rgb(rgb, 1.0),
+                spot_share: (lang.weight as f64).sqrt().max(1.0),
+            })
+        })
+        .collect()
 }

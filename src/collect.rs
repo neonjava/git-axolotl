@@ -15,21 +15,13 @@ use serde_json::{json, Value};
 
 use crate::history::{
     rank_languages, summarize_calendar_window, AccountSnapshot, ContributionDay,
-    ContributionWindow, YearTotal,
+    ContributionWindow, LanguageShare, YearTotal,
 };
 
 const ACCOUNT_QUERY: &str = r#"
 query($login: String!) {
   user(login: $login) {
     databaseId
-    repositories(first: 100, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC, orderBy: {field: UPDATED_AT, direction: DESC}) {
-      nodes {
-        primaryLanguage {
-          name
-          color
-        }
-      }
-    }
     contributionsCollection {
       contributionYears
       contributionCalendar {
@@ -44,6 +36,9 @@ query($login: String!) {
   }
 }
 "#;
+
+/// Upper bound on repository pages, so a huge account can't stall a scheduled run.
+const MAX_LANGUAGE_PAGES: usize = 10;
 
 /// Every request gets a deadline so a stalled endpoint can't hang a scheduled run.
 fn http_agent() -> ureq::Agent {
@@ -101,6 +96,7 @@ fn collect_via_graphql(
 ) -> Result<AccountSnapshot, String> {
     let root = fetch(ACCOUNT_QUERY).and_then(require_graphql_data)?;
     let mut snapshot = parse_graphql_snapshot(login, &root, window)?;
+    snapshot.languages = collect_languages(fetch)?;
 
     let years = parse_contribution_years(&root);
     if !years.is_empty() {
@@ -109,6 +105,74 @@ fn collect_via_graphql(
         snapshot.apply_history(yearly, private, window);
     }
     Ok(snapshot)
+}
+
+/// Add up bytes of code per language across every public, non-fork repository.
+fn collect_languages(
+    fetch: &dyn Fn(&str) -> Result<Value, String>,
+) -> Result<Vec<LanguageShare>, String> {
+    let mut sizes = BTreeMap::new();
+    let mut cursor = None;
+    for _ in 0..MAX_LANGUAGE_PAGES {
+        let page =
+            fetch(&build_languages_query(cursor.as_deref())).and_then(require_graphql_data)?;
+        cursor = add_language_page(&page, &mut sizes)?;
+        if cursor.is_none() {
+            break;
+        }
+    }
+    Ok(rank_languages(sizes))
+}
+
+/// Only public repositories are read, so private work never appears in a public image.
+fn build_languages_query(after: Option<&str>) -> String {
+    let after = after.map_or_else(
+        || "null".to_owned(),
+        |cursor| Value::from(cursor).to_string(),
+    );
+    format!(
+        "query($login: String!) {{ user(login: $login) {{ repositories(first: 100, after: {after}, ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC) {{ pageInfo {{ hasNextPage endCursor }} nodes {{ languages(first: 20, orderBy: {{field: SIZE, direction: DESC}}) {{ edges {{ size node {{ name color }} }} }} }} }} }} }}"
+    )
+}
+
+/// Merge one page of repositories into `sizes`, returning the next page's cursor.
+fn add_language_page(
+    root: &Value,
+    sizes: &mut BTreeMap<String, (String, u64)>,
+) -> Result<Option<String>, String> {
+    let repositories = root
+        .pointer("/data/user/repositories")
+        .ok_or_else(|| "GitHub returned no repositories".to_owned())?;
+    let nodes = repositories
+        .get("nodes")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "GitHub returned no repositories".to_owned())?;
+
+    for edge in nodes
+        .iter()
+        .filter_map(|n| n.pointer("/languages/edges").and_then(Value::as_array))
+        .flatten()
+    {
+        let Some(name) = edge.pointer("/node/name").and_then(Value::as_str) else {
+            continue;
+        };
+        let color = edge
+            .pointer("/node/color")
+            .and_then(Value::as_str)
+            .map_or_else(|| default_language_hex(name), str::to_owned);
+        let size = edge.get("size").and_then(Value::as_u64).unwrap_or(0);
+        sizes.entry(name.to_owned()).or_insert((color, 0)).1 += size;
+    }
+
+    let has_next = repositories
+        .pointer("/pageInfo/hasNextPage")
+        .and_then(Value::as_bool)
+        .unwrap_or(false);
+    Ok(has_next
+        .then(|| repositories.pointer("/pageInfo/endCursor"))
+        .flatten()
+        .and_then(Value::as_str)
+        .map(str::to_owned))
 }
 
 fn parse_contribution_years(root: &Value) -> Vec<i32> {
@@ -224,30 +288,6 @@ fn parse_graphql_snapshot(
 
     let account_id = user.get("databaseId").and_then(Value::as_u64).unwrap_or(1);
 
-    let mut lang_counts: BTreeMap<String, (String, u32)> = BTreeMap::new();
-    if let Some(nodes) = user
-        .get("repositories")
-        .and_then(|r| r.get("nodes"))
-        .and_then(Value::as_array)
-    {
-        for node in nodes {
-            if let Some(lang) = node.get("primaryLanguage").filter(|l| !l.is_null()) {
-                let name = lang
-                    .get("name")
-                    .and_then(Value::as_str)
-                    .unwrap_or("Unknown")
-                    .to_owned();
-                let color = lang
-                    .get("color")
-                    .and_then(Value::as_str)
-                    .unwrap_or("#3178c6")
-                    .to_owned();
-                let entry = lang_counts.entry(name).or_insert((color, 0));
-                entry.1 += 1;
-            }
-        }
-    }
-
     let weeks = user
         .get("contributionsCollection")
         .and_then(|c| c.get("contributionCalendar"))
@@ -289,7 +329,7 @@ fn parse_graphql_snapshot(
         monthly_contributions,
         current_streak,
         longest_streak,
-        languages: rank_languages(lang_counts),
+        languages: Vec::new(),
         lifetime_contributions: 0,
         lifetime_private_contributions: 0,
         yearly_contributions: Vec::new(),
@@ -325,13 +365,13 @@ fn fetch_public_rest_snapshot(
         .as_array()
         .ok_or_else(|| "Repositories response was not a list".to_owned())?;
 
-    let mut lang_counts: BTreeMap<String, (String, u32)> = BTreeMap::new();
+    let mut lang_counts: BTreeMap<String, (String, u64)> = BTreeMap::new();
     for repo in repos {
         if repo.get("fork").and_then(Value::as_bool).unwrap_or(false) {
             continue;
         }
         if let Some(lang_name) = repo.get("language").and_then(Value::as_str) {
-            let color = default_language_hex(lang_name).to_owned();
+            let color = default_language_hex(lang_name);
             let entry = lang_counts
                 .entry(lang_name.to_owned())
                 .or_insert((color, 0));
@@ -407,8 +447,9 @@ fn parse_public_contributions(root: &Value) -> Result<Vec<ContributionDay>, Stri
     Ok(days)
 }
 
-fn default_language_hex(name: &str) -> &'static str {
-    match name {
+/// Known GitHub colors, then a stable color derived from the name so languages stay distinct.
+fn default_language_hex(name: &str) -> String {
+    let known = match name {
         "Rust" => "#dea584",
         "TypeScript" => "#3178c6",
         "JavaScript" => "#f1e05a",
@@ -426,8 +467,15 @@ fn default_language_hex(name: &str) -> &'static str {
         "HTML" => "#e34c26",
         "CSS" => "#563d7c",
         "Shell" => "#89e051",
-        _ => "#3178c6",
+        _ => "",
+    };
+    if !known.is_empty() {
+        return known.to_owned();
     }
+    let hash = name.bytes().fold(0x811c_9dc5_u32, |h, b| {
+        (h ^ u32::from(b)).wrapping_mul(0x0100_0193)
+    });
+    format!("#{:06x}", hash & 0x00ff_ffff)
 }
 
 #[cfg(test)]
@@ -451,6 +499,47 @@ mod tests {
         });
         let result = parse_graphql_snapshot("someone", &root, ContributionWindow::Annual);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn language_pages_add_bytes_across_repositories() {
+        let page = json!({ "data": { "user": { "repositories": {
+            "pageInfo": { "hasNextPage": true, "endCursor": "abc" },
+            "nodes": [
+                { "languages": { "edges": [
+                    { "size": 100, "node": { "name": "Rust", "color": "#dea584" } },
+                    { "size": 40, "node": { "name": "Shell", "color": null } }
+                ]}},
+                { "languages": { "edges": [
+                    { "size": 50, "node": { "name": "Rust", "color": "#dea584" } }
+                ]}}
+            ]
+        }}}});
+        let mut sizes = BTreeMap::new();
+        let next = add_language_page(&page, &mut sizes).unwrap();
+        assert_eq!(next.as_deref(), Some("abc"));
+        assert_eq!(sizes["Rust"].1, 150);
+        assert_eq!(sizes["Shell"].0, "#89e051");
+    }
+
+    #[test]
+    fn a_failed_language_page_fails_the_collection() {
+        let root = json!({ "data": { "user": null } });
+        assert!(add_language_page(&root, &mut BTreeMap::new()).is_err());
+    }
+
+    #[test]
+    fn languages_query_stays_public_and_quotes_the_cursor() {
+        let query = build_languages_query(Some("a\"b"));
+        assert!(query.contains("privacy: PUBLIC"));
+        assert!(query.contains(r#"after: "a\"b""#));
+        assert!(build_languages_query(None).contains("after: null"));
+    }
+
+    #[test]
+    fn unknown_languages_get_distinct_colors() {
+        assert_ne!(default_language_hex("Zig"), default_language_hex("Nim"));
+        assert_eq!(default_language_hex("Zig"), default_language_hex("Zig"));
     }
 
     #[test]

@@ -6,13 +6,13 @@
 
 use std::f64::consts::{PI, TAU};
 
-use crate::coat::{AxolotlCoat, ShadeRamp};
+use crate::coat::{parse_hex_color, AxolotlCoat, ShadeRamp, TOP_LANGUAGE_COUNT};
 use crate::history::AccountSnapshot;
 
 /// Native canvas width in pixels (exported at 2x scale = 640px).
 pub const FRAME_WIDTH_PIXELS: u32 = 320;
-/// Native canvas height in pixels (exported at 2x scale = 280px).
-pub const FRAME_HEIGHT_PIXELS: u32 = 140;
+/// Native canvas height in pixels (exported at 2x scale = 312px).
+pub const FRAME_HEIGHT_PIXELS: u32 = 156;
 /// Animation frame rate (15 FPS).
 pub const FRAMES_PER_SECOND: u32 = 15;
 /// Total frames in one seamless swimming loop (48 frames = 3.2 seconds).
@@ -25,7 +25,7 @@ const EYE_GLINT: [u8; 4] = [250, 250, 255, 255];
 const BAYER_4X4: [[u8; 4]; 4] = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
 const LIGHT: [f64; 3] = [-0.30, -0.62, 0.72];
 /// Bottom rows kept clear so the axolotl never overlaps the HUD text.
-const HUD_RESERVED_BOTTOM: f64 = 22.0;
+const HUD_RESERVED_BOTTOM: f64 = 38.0;
 
 /// Camera perspective for rendering the axolotl.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -172,6 +172,8 @@ struct Part {
     z: i32,
     kind: PartKind,
     pts: Vec<Node>,
+    /// Which language tone a gill frond uses.
+    tone: usize,
 }
 
 struct Hit {
@@ -349,7 +351,7 @@ pub fn render_swim_frame(
 ) -> AxolotlFrame {
     let bio = AxolotlBiology::from_commits(snapshot.total_contributions);
     let framing = compute_framing(&bio, view);
-    render_framed(snapshot, coat, view, &bio, &framing, frame_index)
+    render_framed(snapshot, coat, view, &bio, &framing, frame_index, true)
 }
 
 /// Render the whole seamless swimming loop.
@@ -361,7 +363,7 @@ pub fn render_swim_loop(
     let bio = AxolotlBiology::from_commits(snapshot.total_contributions);
     let framing = compute_framing(&bio, view);
     (0..LOOP_FRAME_COUNT)
-        .map(|f| render_framed(snapshot, coat, view, &bio, &framing, f))
+        .map(|f| render_framed(snapshot, coat, view, &bio, &framing, f, true))
         .collect()
 }
 
@@ -372,6 +374,7 @@ fn render_framed(
     bio: &AxolotlBiology,
     framing: &Framing,
     frame_index: u32,
+    with_hud: bool,
 ) -> AxolotlFrame {
     let w = FRAME_WIDTH_PIXELS;
     let h = FRAME_HEIGHT_PIXELS;
@@ -411,7 +414,9 @@ fn render_framed(
     }
 
     paint_outline(&mut pixels);
-    paint_metrics_hud(&mut pixels, w, h, bio, coat, snapshot);
+    if with_hud {
+        paint_metrics_hud(&mut pixels, w, h, bio, coat, snapshot);
+    }
     AxolotlFrame {
         rgba_pixels: pixels,
     }
@@ -429,8 +434,8 @@ fn paint_part(pixels: &mut [[u8; 4]], part: &Part, coat: &AxolotlCoat, far_side:
             let ramp = match part.kind {
                 PartKind::GillStalk => &coat.gill,
                 PartKind::GillFrond => {
-                    if hit.u > 0.45 {
-                        &coat.gill_tip
+                    if hit.u > 0.30 {
+                        coat.frond_ramp(part.tone)
                     } else {
                         &coat.gill
                     }
@@ -487,7 +492,12 @@ fn paint_body(
                 let spot =
                     smooth_noise(hit.u * bio.body_len / 4.2, v * bio.head_radius / 3.4, seed);
                 if spot > bio.spot_threshold {
-                    ramp = &coat.markings;
+                    let roll = hash_2d(
+                        (hit.u * bio.body_len / 9.0).floor() as i64,
+                        (v * bio.head_radius / 6.0).floor() as i64,
+                        seed ^ 0x5151,
+                    );
+                    ramp = coat.spot_ramp(roll);
                 }
             }
 
@@ -719,6 +729,7 @@ fn add_gill_stalk(
             parts.push(Part {
                 z,
                 kind: PartKind::GillFrond,
+                tone: parts.len(),
                 pts: vec![
                     Node::round(base.x, base.y, 0.85, 0.0),
                     Node::round(
@@ -735,6 +746,7 @@ fn add_gill_stalk(
     parts.push(Part {
         z,
         kind: PartKind::GillStalk,
+        tone: 0,
         pts: stalk,
     });
 }
@@ -825,6 +837,7 @@ fn add_leg(
     parts.push(Part {
         z,
         kind: PartKind::Leg,
+        tone: 0,
         pts: vec![
             Node::round(hip.0, hip.1, (head_r * 0.30).max(1.2), 0.0),
             Node::round(knee.0, knee.1, (head_r * 0.24).max(1.1), 0.5),
@@ -839,6 +852,7 @@ fn add_leg(
         parts.push(Part {
             z,
             kind: PartKind::Leg,
+            tone: 0,
             pts: vec![
                 Node::round(foot.0, foot.1, 0.95, 0.0),
                 Node::round(
@@ -900,10 +914,29 @@ fn add_legs(
     }
 }
 
-/// Paint the bottom-left pixel-art HUD metrics:
-/// Line 1: `<STAGE>` (e.g., `STAGE 4: ADULT`, with a language-colored pip)
-/// Line 2: `CONTRIBUTIONS: <count>`, then `ALL TIME: <count> SINCE <year>` when history is known
-/// Line 3: Top 3 languages with corresponding pixel-color indicator pips
+/// The all-time line, such as `ALL TIME: 5754 SINCE 2025`.
+fn history_text(snapshot: &AccountSnapshot, bio: &AxolotlBiology) -> String {
+    let mut history = String::new();
+    if snapshot.lifetime_contributions > bio.commits {
+        history = format!("ALL TIME: {}", snapshot.lifetime_contributions);
+    }
+    if let Some(year) = snapshot.first_active_year() {
+        history = format!("{history} SINCE {year}").trim_start().to_owned();
+    }
+    history
+}
+
+/// A language's share as HUD text, such as `41%` or `<1%`.
+pub fn language_percent_label(weight: u64, total: u64) -> String {
+    let percent = (weight as f64 / total.max(1) as f64 * 100.0).round() as u64;
+    if percent == 0 {
+        "<1%".to_owned()
+    } else {
+        format!("{percent}%")
+    }
+}
+
+/// Paint the HUD: stage, contribution counts, then the language bar and legend.
 fn paint_metrics_hud(
     rgba_pixels: &mut [[u8; 4]],
     w: u32,
@@ -913,9 +946,8 @@ fn paint_metrics_hud(
     snapshot: &AccountSnapshot,
 ) {
     let base_x = 8_u32;
-    let line1_y = h - 23;
-    let line2_y = h - 15;
-    let line3_y = h - 7;
+    let line1_y = h - 37;
+    let line2_y = h - 29;
 
     let pip_color = coat.gill[3];
     for dy in 0..5_u32 {
@@ -930,13 +962,7 @@ fn paint_metrics_hud(
     let line2 = format!("CONTRIBUTIONS: {}", bio.commits);
     draw_pixel_string(rgba_pixels, w, h, base_x, line2_y, &line2, coat.skin[3]);
 
-    let mut history = String::new();
-    if snapshot.lifetime_contributions > bio.commits {
-        history = format!("ALL TIME: {}", snapshot.lifetime_contributions);
-    }
-    if let Some(year) = snapshot.first_active_year() {
-        history = format!("{history} SINCE {year}").trim_start().to_owned();
-    }
+    let history = history_text(snapshot, bio);
     let history_x = base_x + (line2.chars().count() as u32) * 4 + 6;
     draw_pixel_string(
         rgba_pixels,
@@ -948,29 +974,67 @@ fn paint_metrics_hud(
         coat.belly[2],
     );
 
-    // Line 3: Top 3 languages with their respective pixel color dots
-    let mut lang_x = base_x;
-    for lang in snapshot.languages.iter().take(3) {
-        if let Some(rgb) = crate::coat::parse_hex_color(&lang.hex_color) {
-            let col = [rgb[0], rgb[1], rgb[2], 255];
+    paint_language_legend(rgba_pixels, w, h, h - 21, coat, snapshot);
+}
+
+/// Paint a stacked share bar at `bar_y`, then the top languages in two rows of five.
+fn paint_language_legend(
+    rgba_pixels: &mut [[u8; 4]],
+    w: u32,
+    h: u32,
+    bar_y: u32,
+    coat: &AxolotlCoat,
+    snapshot: &AccountSnapshot,
+) {
+    const BASE_X: u32 = 8;
+    const COLUMN_WIDTH: u32 = 61;
+    const COLUMNS: u32 = 5;
+    const OTHER_COLOR: [u8; 4] = [72, 78, 88, 255];
+
+    let total: u64 = snapshot.languages.iter().map(|l| l.weight).sum();
+    if total == 0 {
+        return;
+    }
+    let bar_width = w - BASE_X * 2;
+    for dx in 0..bar_width {
+        let position = (f64::from(dx) + 0.5) / f64::from(bar_width) * total as f64;
+        let mut covered = 0.0;
+        let mut color = OTHER_COLOR;
+        for lang in snapshot.languages.iter().take(TOP_LANGUAGE_COUNT) {
+            covered += lang.weight as f64;
+            if position <= covered {
+                if let Some([r, g, b]) = parse_hex_color(&lang.hex_color) {
+                    color = [r, g, b, 255];
+                }
+                break;
+            }
+        }
+        for dy in 0..2 {
+            set_outlined_pixel(rgba_pixels, w, h, BASE_X + dx, bar_y + dy, color);
+        }
+    }
+
+    for (index, lang) in snapshot
+        .languages
+        .iter()
+        .take(TOP_LANGUAGE_COUNT)
+        .enumerate()
+    {
+        let index = index as u32;
+        let x = BASE_X + (index % COLUMNS) * COLUMN_WIDTH;
+        let y = bar_y + 5 + (index / COLUMNS) * 8;
+        if let Some([r, g, b]) = parse_hex_color(&lang.hex_color) {
             for dy in 0..3_u32 {
                 for dx in 0..3_u32 {
-                    set_outlined_pixel(rgba_pixels, w, h, lang_x + dx, line3_y + 1 + dy, col);
+                    set_outlined_pixel(rgba_pixels, w, h, x + dx, y + 1 + dy, [r, g, b, 255]);
                 }
             }
         }
-        lang_x += 5;
-        let short_name = lang.name.chars().take(8).collect::<String>();
-        draw_pixel_string(
-            rgba_pixels,
-            w,
-            h,
-            lang_x,
-            line3_y,
-            &short_name,
-            coat.belly[2],
-        );
-        lang_x += (short_name.chars().count() as u32) * 4 + 6;
+        let percent = language_percent_label(lang.weight, total);
+        let name_room = 13_usize.saturating_sub(percent.len() + 1);
+        let name: String = lang.name.chars().take(name_room).collect();
+        let label = format!("{name} {percent}");
+        draw_pixel_string(rgba_pixels, w, h, x + 5, y, &label, coat.belly[2]);
     }
 }
 
@@ -1014,14 +1078,15 @@ pub fn render_share_card_frame(
     let bio = AxolotlBiology::from_commits(snapshot.total_contributions);
 
     draw_pixel_string(&mut pixels, w, h, 9, 9, "GIT-AXOLOTL", coat.belly[3]);
-    let stage_short = bio.hud_stage_label();
-    let right_x = w.saturating_sub((stage_short.len() as u32) * 4 + 8);
-    draw_pixel_string(&mut pixels, w, h, right_x, 9, stage_short, coat.skin[3]);
+    let header = format!("{} - {}", bio.hud_stage_label(), bio.commits);
+    let right_x = w.saturating_sub((header.len() as u32) * 4 + 8);
+    draw_pixel_string(&mut pixels, w, h, right_x, 9, &header, coat.skin[3]);
 
-    // Composite the still axolotl frame into the center (y_offset = 14)
-    let still = render_still_frame(snapshot, coat, view);
+    // Composite the axolotl on its own, since the card lays out its own text below it
+    let framing = compute_framing(&bio, view);
+    let still = render_framed(snapshot, coat, view, &bio, &framing, 12, false);
     for sy in 0..FRAME_HEIGHT_PIXELS {
-        let dy = sy + 14;
+        let dy = sy + 12;
         if dy >= h - 4 {
             continue;
         }
@@ -1033,11 +1098,15 @@ pub fn render_share_card_frame(
         }
     }
 
+    paint_language_legend(&mut pixels, w, h, 129, coat, snapshot);
+    let history = history_text(snapshot, &bio);
+    draw_pixel_string(&mut pixels, w, h, 9, 150, &history, coat.belly[2]);
+
     // Bottom-right 5-stage evolution progress pills
     let stages = ["1.HTCH", "2.LRVA", "3.JUVN", "4.ADLT", "5.ELDR"];
     let active_idx = stage_index(bio.commits);
     let mut sx = 148_u32;
-    let sy = h - 13;
+    let sy = 150;
     for (idx, label) in stages.iter().enumerate() {
         let col = if idx == active_idx {
             coat.belly[3]
@@ -1154,6 +1223,8 @@ fn glyph_3x5(ch: char) -> [u8; 5] {
         '-' => [0b000, 0b000, 0b111, 0b000, 0b000],
         '.' => [0b000, 0b000, 0b000, 0b000, 0b010],
         '+' => [0b000, 0b010, 0b111, 0b010, 0b000],
+        '%' => [0b101, 0b001, 0b010, 0b100, 0b101],
+        '<' => [0b001, 0b010, 0b100, 0b010, 0b001],
         '#' => [0b101, 0b111, 0b101, 0b111, 0b101],
         _ => [0b000, 0b000, 0b000, 0b000, 0b000],
     }

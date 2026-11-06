@@ -152,23 +152,7 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                 monthly_contributions: commits,
                 current_streak: 14,
                 longest_streak: 30,
-                languages: vec![
-                    LanguageShare {
-                        name: "TypeScript".to_owned(),
-                        hex_color: "#3178c6".to_owned(),
-                        repo_count: 10,
-                    },
-                    LanguageShare {
-                        name: "Rust".to_owned(),
-                        hex_color: "#dea584".to_owned(),
-                        repo_count: 8,
-                    },
-                    LanguageShare {
-                        name: "Python".to_owned(),
-                        hex_color: "#3572A5".to_owned(),
-                        repo_count: 5,
-                    },
-                ],
+                languages: demo_languages(),
                 lifetime_contributions: commits + 3200,
                 lifetime_private_contributions: 900,
                 yearly_contributions: vec![
@@ -186,6 +170,27 @@ fn run_cli(args: &[String]) -> Result<(), String> {
         }
         _ => Err(usage_text()),
     }
+}
+
+fn demo_languages() -> Vec<LanguageShare> {
+    [
+        ("TypeScript", "#3178c6", 4200),
+        ("Rust", "#dea584", 3100),
+        ("Python", "#3572A5", 1900),
+        ("Java", "#b07219", 1400),
+        ("JavaScript", "#f1e05a", 900),
+        ("Go", "#00ADD8", 700),
+        ("Kotlin", "#A97BFF", 500),
+        ("HTML", "#e34c26", 350),
+        ("CSS", "#563d7c", 200),
+        ("Shell", "#89e051", 120),
+    ]
+    .map(|(name, hex_color, weight)| LanguageShare {
+        name: name.to_owned(),
+        hex_color: hex_color.to_owned(),
+        weight,
+    })
+    .to_vec()
 }
 
 fn parse_view(s: &str) -> Result<CameraView, String> {

@@ -6,8 +6,9 @@ use git_axolotl::history::{
 };
 use git_axolotl::output::{encode_gif, encode_png, encode_share_card_png};
 use git_axolotl::render::{
-    render_share_card_frame, render_still_frame, render_swim_frame, render_swim_loop,
-    AxolotlBiology, CameraView, LOOP_FRAME_COUNT,
+    language_percent_label, render_share_card_frame, render_still_frame, render_swim_frame,
+    render_swim_loop, AxolotlBiology, CameraView, FRAME_HEIGHT_PIXELS, FRAME_WIDTH_PIXELS,
+    LOOP_FRAME_COUNT,
 };
 
 fn fnv1a_64(bytes: &[u8]) -> u64 {
@@ -32,12 +33,12 @@ fn demo_snapshot(commits: u64) -> AccountSnapshot {
             LanguageShare {
                 name: "Rust".to_owned(),
                 hex_color: "#dea584".to_owned(),
-                repo_count: 10,
+                weight: 10,
             },
             LanguageShare {
                 name: "TypeScript".to_owned(),
                 hex_color: "#3178c6".to_owned(),
-                repo_count: 6,
+                weight: 6,
             },
         ],
         lifetime_contributions: 0,
@@ -105,7 +106,7 @@ fn hex_color_parser_handles_valid_and_invalid_strings() {
 }
 
 /// Update this only after checking the new artwork by eye.
-const GOLDEN_RGBA_HASH: u64 = 0x41f8a81bc99fa7cf;
+const GOLDEN_RGBA_HASH: u64 = 0xc7482db3cd3b37cb;
 
 #[test]
 fn still_frame_matches_pinned_golden_hash() {
@@ -205,6 +206,59 @@ fn old_snapshots_without_history_still_load() {
         "monthly_contributions":5,"current_streak":0,"longest_streak":0,"languages":[]}"#;
     let snap: AccountSnapshot = serde_json::from_str(json).expect("old snapshot parses");
     assert_eq!(snap.lifetime_contributions, 0);
+}
+
+fn ten_language_snapshot() -> AccountSnapshot {
+    let mut snap = demo_snapshot(1800);
+    snap.languages = (0..12_u64)
+        .map(|i| LanguageShare {
+            name: format!("Lang{i}"),
+            hex_color: format!("#{:02x}{:02x}80", 20 * i + 10, 240 - 20 * i),
+            weight: 1000 - i * 80,
+        })
+        .collect();
+    snap
+}
+
+#[test]
+fn every_top_language_gets_a_tone_and_appears_on_the_axolotl() {
+    let snap = ten_language_snapshot();
+    let coat = AxolotlCoat::from_snapshot(&snap, false);
+    assert_eq!(coat.tones.len(), 10);
+
+    let frame = render_still_frame(&snap, &coat, CameraView::Side);
+    let hud_top = (FRAME_HEIGHT_PIXELS - 38) as usize * FRAME_WIDTH_PIXELS as usize;
+    let creature = &frame.rgba_pixels[..hud_top];
+    let shown = coat
+        .tones
+        .iter()
+        .skip(1)
+        .filter(|tone| tone.ramp.iter().any(|shade| creature.contains(shade)))
+        .count();
+    assert_eq!(shown, 9, "every language after the first should be visible");
+}
+
+#[test]
+fn natural_coat_uses_no_language_tones() {
+    let snap = ten_language_snapshot();
+    let coat = AxolotlCoat::from_snapshot(&snap, true);
+    assert!(coat.tones.is_empty());
+    assert_eq!(coat.frond_ramp(3), &coat.gill_tip);
+    assert_eq!(coat.spot_ramp(0.5), &coat.markings);
+}
+
+#[test]
+fn percent_labels_round_and_mark_tiny_shares() {
+    assert_eq!(language_percent_label(41, 100), "41%");
+    assert_eq!(language_percent_label(1, 1000), "<1%");
+    assert_eq!(language_percent_label(5, 0), "500%");
+}
+
+#[test]
+fn old_snapshots_with_repo_counts_still_load() {
+    let json = r##"{"name":"Rust","hex_color":"#dea584","repo_count":3}"##;
+    let lang: LanguageShare = serde_json::from_str(json).expect("old language parses");
+    assert_eq!(lang.weight, 3);
 }
 
 #[test]

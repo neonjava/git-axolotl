@@ -30,8 +30,9 @@ pub struct LanguageShare {
     pub name: String,
     /// GitHub hex color string (e.g., `"#dea584"` or `"#3178c6"`).
     pub hex_color: String,
-    /// Number of repositories or weight where this language is primary.
-    pub repo_count: u32,
+    /// Relative size of this language: bytes of code, or a repository count on the public fallback.
+    #[serde(alias = "repo_count")]
+    pub weight: u64,
 }
 
 /// One day of GitHub contribution activity.
@@ -155,19 +156,15 @@ pub fn summarize_calendar_window(
 }
 
 /// Aggregate repository languages and rank from highest share to lowest.
-pub fn rank_languages(raw_counts: BTreeMap<String, (String, u32)>) -> Vec<LanguageShare> {
+pub fn rank_languages(raw_counts: BTreeMap<String, (String, u64)>) -> Vec<LanguageShare> {
     let mut list: Vec<LanguageShare> = raw_counts
         .into_iter()
-        .map(|(name, (hex_color, repo_count))| LanguageShare {
+        .map(|(name, (hex_color, weight))| LanguageShare {
             name,
             hex_color,
-            repo_count,
+            weight,
         })
         .collect();
-    list.sort_by(|a, b| {
-        b.repo_count
-            .cmp(&a.repo_count)
-            .then_with(|| a.name.cmp(&b.name))
-    });
+    list.sort_by(|a, b| b.weight.cmp(&a.weight).then_with(|| a.name.cmp(&b.name)));
     list
 }

@@ -5,7 +5,8 @@ use git_axolotl::history::{
 };
 use git_axolotl::output::{encode_gif, encode_png, encode_share_card_png};
 use git_axolotl::render::{
-    render_share_card_frame, render_still_frame, render_swim_frame, CameraView, AxolotlBiology,
+    render_share_card_frame, render_still_frame, render_swim_frame, render_swim_loop,
+    AxolotlBiology, CameraView, LOOP_FRAME_COUNT,
 };
 
 fn fnv1a_64(bytes: &[u8]) -> u64 {
@@ -42,26 +43,25 @@ fn demo_snapshot(commits: u64) -> AccountSnapshot {
 }
 
 #[test]
-fn stage_boundaries_cover_zero_to_bull_log_scale() {
-    let s0 = AxolotlBiology::from_commits(0);
-    assert_eq!(s0.stage_name(), "Baby Axolotl Calf");
-    assert_eq!(s0.hud_stage_label(), "STAGE 1: BABY CALF");
+fn stage_boundaries_follow_metamorphosis() {
+    let label = |commits| AxolotlBiology::from_commits(commits).hud_stage_label();
+    assert_eq!(label(0), "STAGE 1: HATCHLING");
+    assert_eq!(label(149), "STAGE 1: HATCHLING");
+    assert_eq!(label(150), "STAGE 2: LARVA");
+    assert_eq!(label(499), "STAGE 2: LARVA");
+    assert_eq!(label(500), "STAGE 3: JUVENILE");
+    assert_eq!(label(1200), "STAGE 4: ADULT");
+    assert_eq!(label(2500), "STAGE 5: ELDER");
 
-    let s1 = AxolotlBiology::from_commits(149);
-    assert_eq!(s1.hud_stage_label(), "STAGE 1: BABY CALF");
-
-    let s2 = AxolotlBiology::from_commits(150);
-    assert_eq!(s2.hud_stage_label(), "STAGE 2: YEARLING CALF");
-
-    let s3 = AxolotlBiology::from_commits(500);
-    assert_eq!(s3.hud_stage_label(), "STAGE 3: ADOLESCENT");
-
-    let s4 = AxolotlBiology::from_commits(1200);
-    assert_eq!(s4.hud_stage_label(), "STAGE 4: MATURE AXOLOTL");
-
-    let s5 = AxolotlBiology::from_commits(2500);
-    assert_eq!(s5.hud_stage_label(), "STAGE 5: ADULT BULL");
-    assert!(s5.body_len > s0.body_len);
+    let hatchling = AxolotlBiology::from_commits(0);
+    let larva = AxolotlBiology::from_commits(150);
+    let juvenile = AxolotlBiology::from_commits(500);
+    let elder = AxolotlBiology::from_commits(2800);
+    assert_eq!(hatchling.front_legs, 0.0);
+    assert!(larva.front_legs > 0.9 && larva.back_legs < 0.05);
+    assert!(juvenile.back_legs > 0.9);
+    assert!(elder.body_len > hatchling.body_len);
+    assert!(elder.gill_fronds > hatchling.gill_fronds);
 }
 
 #[test]
@@ -97,30 +97,65 @@ fn hex_color_parser_handles_valid_and_invalid_strings() {
     assert_eq!(parse_hex_color("#dea584"), Some([222, 165, 132]));
     assert_eq!(parse_hex_color("3178c6"), Some([49, 120, 198]));
     assert_eq!(parse_hex_color("#123"), None);
+    assert_eq!(parse_hex_color("1\u{e9}234x"), None);
+}
+
+/// Update this only after checking the new artwork by eye.
+const GOLDEN_RGBA_HASH: u64 = 0x41f8a81bc99fa7cf;
+
+#[test]
+fn still_frame_matches_pinned_golden_hash() {
+    let snap = demo_snapshot(1250);
+    let coat = AxolotlCoat::from_snapshot(&snap, false);
+    let frame = render_still_frame(&snap, &coat, CameraView::Side);
+    let hash = fnv1a_64(frame.as_rgba_bytes());
+    assert_eq!(hash, GOLDEN_RGBA_HASH, "got 0x{hash:016x}");
 }
 
 #[test]
-fn deterministic_golden_hash_for_still_png_and_share_card() {
-    let snap = demo_snapshot(1250);
+fn every_view_encodes_a_full_loop() {
+    let snap = demo_snapshot(2800);
     let coat = AxolotlCoat::from_snapshot(&snap, false);
+    for view in [CameraView::Side, CameraView::Dive, CameraView::Top] {
+        let frames = render_swim_loop(&snap, &coat, view);
+        assert_eq!(frames.len(), LOOP_FRAME_COUNT as usize);
+        assert_ne!(frames[0], frames[12]);
+        let gif_bytes = encode_gif(&frames).expect("encode_gif succeeds");
+        assert!(gif_bytes.starts_with(b"GIF89a"));
+    }
+}
 
-    let frame_a = render_still_frame(&snap, &coat, CameraView::Side);
-    let frame_b = render_still_frame(&snap, &coat, CameraView::Side);
-    assert_eq!(frame_a, frame_b);
+#[test]
+fn loop_is_seamless_and_matches_single_frame_rendering() {
+    let snap = demo_snapshot(800);
+    let coat = AxolotlCoat::from_snapshot(&snap, false);
+    let frames = render_swim_loop(&snap, &coat, CameraView::Side);
+    let wrapped = render_swim_frame(&snap, &coat, CameraView::Side, LOOP_FRAME_COUNT);
+    assert_eq!(frames[0], wrapped);
+}
 
-    let png_a = encode_png(&frame_a).expect("encode_png succeeds");
-    let png_b = encode_png(&frame_b).expect("encode_png succeeds");
-    assert_eq!(fnv1a_64(&png_a), fnv1a_64(&png_b));
-    let rgba_hash = fnv1a_64(frame_a.as_rgba_bytes());
-    println!("GOLDEN_RGBA_HASH=0x{rgba_hash:016x}");
-    assert_eq!(rgba_hash, fnv1a_64(frame_b.as_rgba_bytes()));
+#[test]
+fn each_account_gets_its_own_spot_pattern() {
+    let first = demo_snapshot(1800);
+    let mut second = demo_snapshot(1800);
+    second.login = "someone-else".to_owned();
+    second.account_id = 7;
+    let coat = AxolotlCoat::from_snapshot(&first, false);
+    assert_ne!(
+        render_still_frame(&first, &coat, CameraView::Side),
+        render_still_frame(&second, &coat, CameraView::Side)
+    );
+}
 
-    let swim_0 = render_swim_frame(&snap, &coat, CameraView::Side, 0);
-    let swim_1 = render_swim_frame(&snap, &coat, CameraView::Side, 24);
-    let gif_bytes = encode_gif(&[swim_0, swim_1]).expect("encode_gif succeeds");
-    assert!(gif_bytes.starts_with(b"GIF89a"));
-
+#[test]
+fn share_card_and_still_encode_as_png() {
+    let snap = demo_snapshot(1250);
+    let coat = AxolotlCoat::from_snapshot(&snap, true);
+    let still = render_still_frame(&snap, &coat, CameraView::Top);
     let card = render_share_card_frame(&snap, &coat, CameraView::Side);
-    let card_png = encode_share_card_png(&card).expect("encode_share_card_png succeeds");
-    assert!(card_png.starts_with(b"\x89PNG\r\n\x1a\n"));
+    let signature = b"\x89PNG\r\n\x1a\n";
+    assert!(encode_png(&still).expect("png").starts_with(signature));
+    assert!(encode_share_card_png(&card)
+        .expect("share card")
+        .starts_with(signature));
 }

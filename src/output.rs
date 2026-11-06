@@ -1,5 +1,5 @@
 //! Encodes rendered `AxolotlFrame`s into crisp 2x-scaled looping `.gif`, static `.png`,
-//! vector `.svg`, and `preview.html` (identical to `git-koi`'s output pipeline).
+//! and `preview.html`.
 
 use std::borrow::Cow;
 use std::collections::BTreeMap;
@@ -203,15 +203,15 @@ pub fn encode_preview_html(caption: &str) -> String {
 <section class="dark">
 <h2>GitHub Dark Mode</h2>
 <div class="images">
-<figure><img src="axolotl.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl swimming"><figcaption>axolotl.gif (Animated 15 FPS)</figcaption></figure>
-<figure><img src="axolotl.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl still"><figcaption>axolotl.png (Static Still)</figcaption></figure>
+<figure><img src="axolotl.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The axolotl swimming"><figcaption>axolotl.gif (Animated 15 FPS)</figcaption></figure>
+<figure><img src="axolotl.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The axolotl still"><figcaption>axolotl.png (Static Still)</figcaption></figure>
 </div>
 </section>
 <section class="light">
 <h2>GitHub Light Mode</h2>
 <div class="images">
-<figure><img src="axolotl.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl swimming"><figcaption>axolotl.gif (Animated 15 FPS)</figcaption></figure>
-<figure><img src="axolotl.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The Axolotl still"><figcaption>axolotl.png (Static Still)</figcaption></figure>
+<figure><img src="axolotl.gif" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The axolotl swimming"><figcaption>axolotl.gif (Animated 15 FPS)</figcaption></figure>
+<figure><img src="axolotl.png" width="{EXPORT_WIDTH}" height="{EXPORT_HEIGHT}" alt="The axolotl still"><figcaption>axolotl.png (Static Still)</figcaption></figure>
 </div>
 </section>
 </body>

@@ -14,8 +14,8 @@ inputs:
   window:
     description: Contribution window, one of annual (Jan 1 reset) or rolling (trailing 365 days).
     default: annual
-  canon:
-    description: Set to 'true' to use canon Pandoran colors instead of GitHub language colors.
+  natural:
+    description: Set to 'true' to use natural pink axolotl colors instead of GitHub language colors.
     default: "false"
   output-dir:
     description: Folder, relative to the workspace, that receives axolotl.gif, axolotl.png, and share-card.png.
@@ -81,12 +81,12 @@ runs:
       shell: bash
       env:
         AXOLOTL_VIEW: ${{ inputs.view }}
-        AXOLOTL_CANON: ${{ inputs.canon }}
+        AXOLOTL_NATURAL: ${{ inputs.natural }}
         AXOLOTL_OUTPUT_DIR: ${{ inputs.output-dir }}
       run: |
         extra_flags=""
-        if [ "$AXOLOTL_CANON" = "true" ]; then
-          extra_flags="--canon"
+        if [ "$AXOLOTL_NATURAL" = "true" ]; then
+          extra_flags="--natural"
         fi
         git-axolotl render "$RUNNER_TEMP/axolotl-snapshot.json" \
           --output-dir "$AXOLOTL_OUTPUT_DIR" \

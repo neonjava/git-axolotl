@@ -1,65 +1,74 @@
-//! Converts GitHub language hex colors into 4-shade pixel-art dither ramps for the Axolotl's
-//! carapace armor, ventral pleated belly, sensor crest core, and ivory war-stripes.
+//! Converts GitHub language hex colors into 4-shade pixel-art dither ramps for the axolotl's
+//! skin, markings, belly, fin and gills.
 
 use crate::history::AccountSnapshot;
 
 /// A 4-shade pixel-art ramp `[shadow, mid_dark, mid_light, highlight]` in RGBA.
 pub type ShadeRamp = [[u8; 4]; 4];
 
-/// Complete palette for rendering a Axolotl.
+/// Complete palette for rendering an axolotl.
 #[derive(Clone, Debug)]
 pub struct AxolotlCoat {
-    /// Adult dorsal carapace armor (or primary language dark ramp).
-    pub armor: ShadeRamp,
-    /// Calf teal skin & adult ventral pleated belly (derived from primary/secondary language).
+    /// Main body and leg skin (primary language).
+    pub skin: ShadeRamp,
+    /// Speckled spots on the back (darker primary language).
+    pub markings: ShadeRamp,
+    /// Pale underside.
     pub belly: ShadeRamp,
-    /// White/ivory jaw war-stripes, calf dorsal patches, and pectoral wing leading edges.
-    pub cream: ShadeRamp,
-    /// Reddish-maroon (or secondary/tertiary language) sensor crest organ core.
-    pub crest_core: ShadeRamp,
-    /// Female/adolescent olive/gold crest tip accent.
-    pub crest_tip: ShadeRamp,
+    /// Translucent-looking tail fin.
+    pub fin: ShadeRamp,
+    /// Gill stalks (secondary language).
+    pub gill: ShadeRamp,
+    /// Feathery gill fronds (tertiary language).
+    pub gill_tip: ShadeRamp,
 }
 
-pub const CANON_ARMOR: ShadeRamp = [
-    [22, 26, 32, 255],
-    [38, 44, 52, 255],
-    [62, 70, 80, 255],
-    [96, 106, 118, 255],
+pub const NATURAL_SKIN: ShadeRamp = [
+    [150, 92, 104, 255],
+    [205, 132, 142, 255],
+    [238, 176, 178, 255],
+    [255, 220, 214, 255],
 ];
 
-pub const CANON_BELLY: ShadeRamp = [
-    [20, 58, 86, 255],
-    [34, 88, 126, 255],
-    [58, 128, 168, 255],
-    [104, 174, 212, 255],
+pub const NATURAL_MARKINGS: ShadeRamp = [
+    [92, 56, 74, 255],
+    [128, 76, 92, 255],
+    [160, 100, 112, 255],
+    [188, 128, 134, 255],
 ];
 
-pub const CANON_CREAM: ShadeRamp = [
-    [124, 132, 138, 255],
-    [172, 180, 186, 255],
-    [216, 222, 226, 255],
-    [248, 250, 252, 255],
+pub const NATURAL_BELLY: ShadeRamp = [
+    [206, 160, 160, 255],
+    [236, 196, 190, 255],
+    [250, 222, 212, 255],
+    [255, 242, 232, 255],
 ];
 
-pub const CANON_CREST_RED: ShadeRamp = [
-    [68, 24, 28, 255],
-    [112, 38, 44, 255],
-    [158, 60, 66, 255],
-    [204, 96, 98, 255],
+pub const NATURAL_FIN: ShadeRamp = [
+    [190, 130, 142, 255],
+    [226, 170, 174, 255],
+    [246, 204, 200, 255],
+    [255, 232, 226, 255],
 ];
 
-pub const CANON_CREST_TIP: ShadeRamp = [
-    [98, 112, 64, 255],
-    [142, 158, 88, 255],
-    [184, 198, 122, 255],
-    [220, 232, 164, 255],
+pub const NATURAL_GILL: ShadeRamp = [
+    [122, 24, 54, 255],
+    [176, 38, 70, 255],
+    [226, 66, 92, 255],
+    [250, 118, 128, 255],
+];
+
+pub const NATURAL_GILL_TIP: ShadeRamp = [
+    [196, 60, 96, 255],
+    [240, 104, 124, 255],
+    [255, 150, 156, 255],
+    [255, 200, 196, 255],
 ];
 
 /// Parse a `#RRGGBB` string into `[r, g, b]`.
 pub fn parse_hex_color(hex: &str) -> Option<[u8; 3]> {
     let clean = hex.trim().trim_start_matches('#');
-    if clean.len() != 6 {
+    if clean.len() != 6 || !clean.is_ascii() {
         return None;
     }
     let r = u8::from_str_radix(&clean[0..2], 16).ok()?;
@@ -106,50 +115,36 @@ pub fn blend_ramps(a: ShadeRamp, b: ShadeRamp, weight_b: f64) -> ShadeRamp {
 }
 
 impl AxolotlCoat {
-    /// Derive a Axolotl coat from the account's top GitHub languages blended with canon Pandoran biology.
-    pub fn from_snapshot(snapshot: &AccountSnapshot, use_canon_only: bool) -> Self {
-        if use_canon_only || snapshot.languages.is_empty() {
+    /// Derive a coat from the account's top GitHub languages, blended with natural axolotl pink.
+    pub fn from_snapshot(snapshot: &AccountSnapshot, natural_only: bool) -> Self {
+        if natural_only || snapshot.languages.is_empty() {
             return Self {
-                armor: CANON_ARMOR,
-                belly: CANON_BELLY,
-                cream: CANON_CREAM,
-                crest_core: CANON_CREST_RED,
-                crest_tip: CANON_CREST_TIP,
+                skin: NATURAL_SKIN,
+                markings: NATURAL_MARKINGS,
+                belly: NATURAL_BELLY,
+                fin: NATURAL_FIN,
+                gill: NATURAL_GILL,
+                gill_tip: NATURAL_GILL_TIP,
             };
         }
 
-        let lang1_rgb = snapshot
-            .languages
-            .first()
-            .and_then(|l| parse_hex_color(&l.hex_color))
-            .unwrap_or([49, 120, 198]); // TypeScript Blue fallback
-
-        let lang2_rgb = snapshot
-            .languages
-            .get(1)
-            .and_then(|l| parse_hex_color(&l.hex_color))
-            .unwrap_or([222, 165, 132]); // Rust Amber fallback
-
-        let lang3_rgb = snapshot
-            .languages
-            .get(2)
-            .and_then(|l| parse_hex_color(&l.hex_color))
-            .unwrap_or(lang2_rgb);
-
-        // Primary language tints the ventral belly & calf skin; darkens into the dorsal carapace armor
-        let belly = blend_ramps(CANON_BELLY, build_ramp_from_rgb(lang1_rgb, 1.0), 0.65);
-        let armor = blend_ramps(CANON_ARMOR, build_ramp_from_rgb(lang1_rgb, 0.52), 0.45);
-        // Secondary language tints the sensor crest organ core
-        let crest_core = blend_ramps(CANON_CREST_RED, build_ramp_from_rgb(lang2_rgb, 0.90), 0.58);
-        // Tertiary language tints the crest tip
-        let crest_tip = blend_ramps(CANON_CREST_TIP, build_ramp_from_rgb(lang3_rgb, 1.05), 0.55);
+        let color_at = |i: usize| {
+            snapshot
+                .languages
+                .get(i)
+                .and_then(|l| parse_hex_color(&l.hex_color))
+        };
+        let lang1 = color_at(0).unwrap_or([49, 120, 198]);
+        let lang2 = color_at(1).unwrap_or(lang1);
+        let lang3 = color_at(2).unwrap_or(lang2);
 
         Self {
-            armor,
-            belly,
-            cream: CANON_CREAM,
-            crest_core,
-            crest_tip,
+            skin: blend_ramps(NATURAL_SKIN, build_ramp_from_rgb(lang1, 1.0), 0.62),
+            markings: blend_ramps(NATURAL_MARKINGS, build_ramp_from_rgb(lang1, 0.55), 0.55),
+            belly: blend_ramps(NATURAL_BELLY, build_ramp_from_rgb(lang1, 1.1), 0.22),
+            fin: blend_ramps(NATURAL_FIN, build_ramp_from_rgb(lang1, 1.05), 0.45),
+            gill: blend_ramps(NATURAL_GILL, build_ramp_from_rgb(lang2, 0.95), 0.70),
+            gill_tip: blend_ramps(NATURAL_GILL_TIP, build_ramp_from_rgb(lang3, 1.1), 0.70),
         }
     }
 }

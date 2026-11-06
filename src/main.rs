@@ -2,8 +2,8 @@
 //!
 //! Commands:
 //! - `git-axolotl collect <login> [--window annual|rolling] [--output snapshot.json]`
-//! - `git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--canon]`
-//! - `git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--canon]`
+//! - `git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--natural]`
+//! - `git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--natural]`
 
 use std::env;
 use std::fs;
@@ -16,8 +16,7 @@ use git_axolotl::collect::collect_account_snapshot_with_window;
 use git_axolotl::history::{AccountSnapshot, ContributionWindow, LanguageShare};
 use git_axolotl::output::{encode_gif, encode_png, encode_preview_html, encode_share_card_png};
 use git_axolotl::render::{
-    render_share_card_frame, render_still_frame, render_swim_frame, CameraView, AxolotlBiology,
-    AxolotlFrame, LOOP_FRAME_COUNT,
+    render_share_card_frame, render_still_frame, render_swim_loop, AxolotlBiology, CameraView,
 };
 
 fn main() -> ExitCode {
@@ -76,7 +75,7 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                 .ok_or_else(|| "missing <snapshot.json> for `render`".to_owned())?;
             let mut output_dir = PathBuf::from("axolotl");
             let mut view = CameraView::Side;
-            let mut canon_only = false;
+            let mut natural_only = false;
 
             let mut i = 2;
             while i < args.len() {
@@ -91,8 +90,8 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                         view = parse_view(v)?;
                         i += 2;
                     }
-                    "--canon" => {
-                        canon_only = true;
+                    "--natural" => {
+                        natural_only = true;
                         i += 1;
                     }
                     other => return Err(format!("unknown option `{other}`")),
@@ -103,13 +102,13 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                 fs::read_to_string(snapshot_file).map_err(|e| format!("{snapshot_file}: {e}"))?;
             let snapshot: AccountSnapshot =
                 serde_json::from_str(&raw).map_err(|e| format!("{snapshot_file}: {e}"))?;
-            render_to_directory(&snapshot, &output_dir, view, canon_only)
+            render_to_directory(&snapshot, &output_dir, view, natural_only)
         }
         "demo" => {
             let mut commits = 2800_u64;
             let mut output_dir = PathBuf::from("axolotl");
             let mut view = CameraView::Side;
-            let mut canon_only = false;
+            let mut natural_only = false;
 
             let mut i = 1;
             while i < args.len() {
@@ -129,8 +128,8 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                         view = parse_view(v)?;
                         i += 2;
                     }
-                    "--canon" => {
-                        canon_only = true;
+                    "--natural" => {
+                        natural_only = true;
                         i += 1;
                     }
                     other => return Err(format!("unknown option `{other}`")),
@@ -163,7 +162,7 @@ fn run_cli(args: &[String]) -> Result<(), String> {
                     },
                 ],
             };
-            render_to_directory(&demo_snapshot, &output_dir, view, canon_only)
+            render_to_directory(&demo_snapshot, &output_dir, view, natural_only)
         }
         _ => Err(usage_text()),
     }
@@ -194,22 +193,16 @@ fn render_to_directory(
     snapshot: &AccountSnapshot,
     output_dir: &Path,
     view: CameraView,
-    canon_only: bool,
+    natural_only: bool,
 ) -> Result<(), String> {
-    let coat = AxolotlCoat::from_snapshot(snapshot, canon_only);
-    let swim_frames: Vec<AxolotlFrame> = (0..LOOP_FRAME_COUNT)
-        .map(|f| render_swim_frame(snapshot, &coat, view, f))
-        .collect();
+    let coat = AxolotlCoat::from_snapshot(snapshot, natural_only);
+    let swim_frames = render_swim_loop(snapshot, &coat, view);
 
     let gif_bytes = encode_gif(&swim_frames)?;
     let png_bytes = encode_png(&render_still_frame(snapshot, &coat, view))?;
     let share_card_bytes = encode_share_card_png(&render_share_card_frame(snapshot, &coat, view))?;
 
-    let bio = AxolotlBiology::from_commits(
-        snapshot
-            .total_contributions
-            .max(snapshot.monthly_contributions),
-    );
+    let bio = AxolotlBiology::from_commits(snapshot.total_contributions);
     let caption = format!(
         "@{} - {} ({} contributions)",
         snapshot.login,
@@ -244,7 +237,7 @@ fn render_to_directory(
 fn usage_text() -> String {
     "Usage:\n  \
      git-axolotl collect <login> [--window annual|rolling] [--output snapshot.json]\n  \
-     git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--canon]\n  \
-     git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--canon]"
+     git-axolotl render <snapshot.json> [--output-dir axolotl] [--view side|dive|top] [--natural]\n  \
+     git-axolotl demo [--commits 2800] [--output-dir axolotl] [--view side|dive|top] [--natural]"
         .to_owned()
 }

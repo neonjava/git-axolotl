@@ -38,7 +38,7 @@ pub struct AccountSnapshot {
     pub login: String,
     pub account_id: u64,
     pub observed_on: NaiveDate,
-    /// Total contributions across the observed window (drives Axolotl growth from Calf to Patriarch).
+    /// Total contributions across the observed window (drives growth from Hatchling to Elder).
     pub total_contributions: u64,
     /// Contributions made in the current calendar month.
     pub monthly_contributions: u64,

@@ -52,23 +52,47 @@ pub fn collect_account_snapshot_with_window(
     login: &str,
     window: ContributionWindow,
 ) -> Result<AccountSnapshot, String> {
+    let mut failures: Vec<String> = Vec::new();
+
     // 1. If GITHUB_TOKEN or GH_TOKEN is available, query https://api.github.com/graphql directly via HTTPS (no `gh` CLI required).
     if let Ok(token) = env::var("GITHUB_TOKEN").or_else(|_| env::var("GH_TOKEN")) {
         let trimmed = token.trim();
         if !trimmed.is_empty() {
-            if let Ok(root) = fetch_graphql_via_https(login, trimmed) {
-                return parse_graphql_snapshot(login, &root, window);
+            match fetch_graphql_via_https(login, trimmed).and_then(require_graphql_data) {
+                Ok(root) => return parse_graphql_snapshot(login, &root, window),
+                Err(err) => failures.push(format!("GraphQL over HTTPS: {err}")),
             }
         }
     }
 
     // 2. Otherwise try `gh api graphql` if the user has the GitHub CLI installed and logged in locally.
-    if let Ok(root) = fetch_graphql_via_gh_cli(login) {
-        return parse_graphql_snapshot(login, &root, window);
+    match fetch_graphql_via_gh_cli(login).and_then(require_graphql_data) {
+        Ok(root) => return parse_graphql_snapshot(login, &root, window),
+        Err(err) => failures.push(format!("gh CLI: {err}")),
     }
 
     // 3. Fallback: tokenless public HTTPS endpoints (`api.github.com/users/<login>/repos` + `github-contributions-api.jogruber.de`).
-    fetch_public_rest_snapshot(login, window)
+    fetch_public_rest_snapshot(login, window).map_err(|err| {
+        failures.push(format!("public endpoints: {err}"));
+        format!(
+            "could not collect a snapshot for `{login}`: {}",
+            failures.join("; ")
+        )
+    })
+}
+
+/// Reject GraphQL responses that report `errors`, so partial data never becomes an empty snapshot.
+fn require_graphql_data(root: Value) -> Result<Value, String> {
+    if let Some(errors) = root.get("errors").and_then(Value::as_array) {
+        if !errors.is_empty() {
+            let messages: Vec<&str> = errors
+                .iter()
+                .filter_map(|e| e.get("message").and_then(Value::as_str))
+                .collect();
+            return Err(format!("GraphQL errors: {}", messages.join(", ")));
+        }
+    }
+    Ok(root)
 }
 
 fn fetch_graphql_via_https(login: &str, token: &str) -> Result<Value, String> {
@@ -147,30 +171,33 @@ fn parse_graphql_snapshot(
         }
     }
 
-    let mut days = Vec::new();
-    if let Some(weeks) = user
+    let weeks = user
         .get("contributionsCollection")
         .and_then(|c| c.get("contributionCalendar"))
         .and_then(|cal| cal.get("weeks"))
         .and_then(Value::as_array)
-    {
-        for week in weeks {
-            if let Some(c_days) = week.get("contributionDays").and_then(Value::as_array) {
-                for d in c_days {
-                    if let (Some(date_str), Some(count)) = (
-                        d.get("date").and_then(Value::as_str),
-                        d.get("contributionCount").and_then(Value::as_u64),
-                    ) {
-                        if let Ok(date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
-                            days.push(ContributionDay {
-                                date,
-                                count: count as u32,
-                            });
-                        }
+        .ok_or_else(|| format!("GitHub returned no contribution calendar for `{login}`"))?;
+
+    let mut days = Vec::new();
+    for week in weeks {
+        if let Some(c_days) = week.get("contributionDays").and_then(Value::as_array) {
+            for d in c_days {
+                if let (Some(date_str), Some(count)) = (
+                    d.get("date").and_then(Value::as_str),
+                    d.get("contributionCount").and_then(Value::as_u64),
+                ) {
+                    if let Ok(date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+                        days.push(ContributionDay {
+                            date,
+                            count: count as u32,
+                        });
                     }
                 }
             }
         }
+    }
+    if days.is_empty() {
+        return Err(format!("contribution calendar for `{login}` was empty"));
     }
 
     let today: NaiveDate = DateTime::<Utc>::from(std::time::SystemTime::now()).date_naive();
@@ -205,52 +232,39 @@ fn fetch_public_rest_snapshot(
     let account_id = user_json.get("id").and_then(Value::as_u64).unwrap_or(1);
 
     let repos_url = format!("https://api.github.com/users/{login}/repos?per_page=100&sort=updated");
-    let mut lang_counts: BTreeMap<String, (String, u32)> = BTreeMap::new();
-    if let Ok(resp) = ureq::get(&repos_url)
+    let repos: Value = ureq::get(&repos_url)
         .set("User-Agent", "git-tulkun")
         .set("Accept", "application/vnd.github+json")
         .call()
-    {
-        if let Ok(Value::Array(repos)) = resp.into_json::<Value>() {
-            for repo in repos {
-                if repo.get("fork").and_then(Value::as_bool).unwrap_or(false) {
-                    continue;
-                }
-                if let Some(lang_name) = repo.get("language").and_then(Value::as_str) {
-                    let color = default_language_hex(lang_name).to_owned();
-                    let entry = lang_counts
-                        .entry(lang_name.to_owned())
-                        .or_insert((color, 0));
-                    entry.1 += 1;
-                }
-            }
+        .map_err(|e| format!("Failed to fetch repositories for `{login}`: {e}"))?
+        .into_json()
+        .map_err(|e| format!("Invalid repositories JSON: {e}"))?;
+    let repos = repos
+        .as_array()
+        .ok_or_else(|| "Repositories response was not a list".to_owned())?;
+
+    let mut lang_counts: BTreeMap<String, (String, u32)> = BTreeMap::new();
+    for repo in repos {
+        if repo.get("fork").and_then(Value::as_bool).unwrap_or(false) {
+            continue;
+        }
+        if let Some(lang_name) = repo.get("language").and_then(Value::as_str) {
+            let color = default_language_hex(lang_name).to_owned();
+            let entry = lang_counts
+                .entry(lang_name.to_owned())
+                .or_insert((color, 0));
+            entry.1 += 1;
         }
     }
 
     let contribs_url = format!("https://github-contributions-api.jogruber.de/v4/{login}");
-    let mut days = Vec::new();
-    if let Ok(resp) = ureq::get(&contribs_url)
+    let contrib_json: Value = ureq::get(&contribs_url)
         .set("User-Agent", "git-tulkun")
         .call()
-    {
-        if let Ok(contrib_json) = resp.into_json::<Value>() {
-            if let Some(arr) = contrib_json.get("contributions").and_then(Value::as_array) {
-                for item in arr {
-                    if let (Some(date_str), Some(count)) = (
-                        item.get("date").and_then(Value::as_str),
-                        item.get("count").and_then(Value::as_u64),
-                    ) {
-                        if let Ok(date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
-                            days.push(ContributionDay {
-                                date,
-                                count: count as u32,
-                            });
-                        }
-                    }
-                }
-            }
-        }
-    }
+        .map_err(|e| format!("Failed to fetch contributions for `{login}`: {e}"))?
+        .into_json()
+        .map_err(|e| format!("Invalid contributions JSON: {e}"))?;
+    let days = parse_public_contributions(&contrib_json)?;
 
     let today: NaiveDate = DateTime::<Utc>::from(std::time::SystemTime::now()).date_naive();
     let (total_contributions, monthly_contributions, current_streak, longest_streak) =
@@ -266,6 +280,32 @@ fn fetch_public_rest_snapshot(
         longest_streak,
         languages: rank_languages(lang_counts),
     })
+}
+
+fn parse_public_contributions(root: &Value) -> Result<Vec<ContributionDay>, String> {
+    let items = root
+        .get("contributions")
+        .and_then(Value::as_array)
+        .ok_or_else(|| "Contributions response had no `contributions` list".to_owned())?;
+
+    let mut days = Vec::with_capacity(items.len());
+    for item in items {
+        if let (Some(date_str), Some(count)) = (
+            item.get("date").and_then(Value::as_str),
+            item.get("count").and_then(Value::as_u64),
+        ) {
+            if let Ok(date) = NaiveDate::parse_from_str(date_str, "%Y-%m-%d") {
+                days.push(ContributionDay {
+                    date,
+                    count: count as u32,
+                });
+            }
+        }
+    }
+    if days.is_empty() {
+        return Err("Contributions response had no usable days".to_owned());
+    }
+    Ok(days)
 }
 
 fn default_language_hex(name: &str) -> &'static str {
@@ -288,5 +328,43 @@ fn default_language_hex(name: &str) -> &'static str {
         "CSS" => "#563d7c",
         "Shell" => "#89e051",
         _ => "#3178c6",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn graphql_errors_are_rejected_even_with_partial_data() {
+        let root = json!({
+            "errors": [{ "message": "API rate limit exceeded" }],
+            "data": { "user": { "contributionsCollection": null } }
+        });
+        let err = require_graphql_data(root).unwrap_err();
+        assert!(err.contains("rate limit"));
+    }
+
+    #[test]
+    fn missing_calendar_fails_instead_of_producing_zero_contributions() {
+        let root = json!({
+            "data": { "user": { "databaseId": 1, "contributionsCollection": null } }
+        });
+        let result = parse_graphql_snapshot("someone", &root, ContributionWindow::Annual);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn empty_public_contributions_fail() {
+        assert!(parse_public_contributions(&json!({ "contributions": [] })).is_err());
+        assert!(parse_public_contributions(&json!({ "error": "nope" })).is_err());
+    }
+
+    #[test]
+    fn public_contributions_parse() {
+        let root = json!({ "contributions": [{ "date": "2026-01-02", "count": 3 }] });
+        let days = parse_public_contributions(&root).unwrap();
+        assert_eq!(days.len(), 1);
+        assert_eq!(days[0].count, 3);
     }
 }

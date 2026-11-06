@@ -109,6 +109,19 @@ runs:
           git add "$TULKUN_OUTPUT_DIR/tulkun.gif" "$TULKUN_OUTPUT_DIR/tulkun.png" "$TULKUN_OUTPUT_DIR/share-card.png"
           git diff --cached --quiet || (git commit -m "chore: update Tulkun" && git push "$remote_url" "HEAD:$TULKUN_BRANCH")
         else
+          # The orphan publish replaces the whole branch, so only ever overwrite a branch this action owns.
+          if git ls-remote --exit-code --heads "$remote_url" "refs/heads/$TULKUN_BRANCH" > /dev/null 2>&1; then
+            guard_dir="$RUNNER_TEMP/tulkun-guard"
+            rm -rf "$guard_dir"
+            git init -q "$guard_dir"
+            git -C "$guard_dir" fetch -q --depth=1 "$remote_url" "refs/heads/$TULKUN_BRANCH"
+            last_subject=$(git -C "$guard_dir" log -1 --format=%s FETCH_HEAD)
+            if [ "$last_subject" != "chore: update Tulkun" ]; then
+              echo "::error::Refusing to overwrite branch '$TULKUN_BRANCH': it was not created by this action (latest commit: '$last_subject'). Use a dedicated branch, or check out that branch to commit on top of it."
+              exit 1
+            fi
+          fi
+
           work_dir="$RUNNER_TEMP/tulkun-publish"
           rm -rf "$work_dir"
           mkdir -p "$work_dir/$TULKUN_OUTPUT_DIR"
